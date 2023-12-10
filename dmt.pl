@@ -17,10 +17,12 @@ nnf(X,X).
 % correction syntaxique & semantique
 
 % concept(X,Lres) :- concept().
-concept(X) :- setof(X,cnamea(X),L),!.
-concept(X) :- setof(X,cnamena(X),L),!.
-concept(X) :- setof(X,iname(X),L),!.
-concept(X) :- setof(X,rname(X),L),!.
+% Faux: concept(X) :- setof(_,cnamea(_),L),member(X,L),!.
+% car retourne L comme une var arbitraire, peut verifier dans mode trace
+concept(X) :- setof(Y,cnamea(Y),L),member(X,L),!.
+concept(X) :- setof(Y,cnamena(Y),L),member(X,L),!.
+% concept(X) :- setof(X,iname(X),L),!.
+% concept(X) :- setof(X,rname(X),L),!.
 
 % ; pour "ou"
 
