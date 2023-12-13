@@ -37,6 +37,15 @@ concept(X) :- setof(Y,cnamena(Y),L),member(X,L).
 
 % autoref().
 
+% à gauche = concept non atomique, à droite = expression/concept générique
+% si à droite, il n'y a que des concepts atomiques, on sait que c'est impossible qu'il soit à droite donc pas-autoref
+pas-autoref(_, and(C1, C2), _) :- setof(X, cnamea(X), L), member(C1, L), member(C2, L).
+pas-autoref(_, or(C1, C2), _) :- setof(X, cnamea(X), L), member(C1, L), member(C2, L).
+pas-autoref(_, some(R, C), _) :- setof(X, rname(X), Lr), member(R, Lr), setof(Y, cnamea(Y), Lc), member(C, Lc).
+pas-autoref(_, all(R, C), _) :- setof(X, rname(X), Lr), member(R, Lr), setof(Y, cnamea(Y), Lc), member(C, Lc).
+% traitement où on doit appliquer d'autres définitions pour définir les concepts non atomiques
+% autres paramètres ??
+
 % Mettre sous forme normale negative
 % traitement-Tbox(Cx) :- concept-atomique(Cx); traitement-Tbox(Cx-qqch).
 
