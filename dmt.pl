@@ -19,10 +19,19 @@ nnf(X,X).
 % concept(X,Lres) :- concept().
 % Faux: concept(X) :- setof(_,cnamea(_),L),member(X,L),!.
 % car retourne L comme une var arbitraire, peut verifier dans mode trace
-concept(X) :- setof(Y,cnamea(Y),L),member(X,L),!.
-concept(X) :- setof(Y,cnamena(Y),L),member(X,L),!.
+
+% concept(X) :- setof(Y,cnamea(Y),L),member(X,L),!.
+% concept(X) :- setof(Y,cnamena(Y),L),member(X,L),!.
+
 % concept(X) :- setof(X,iname(X),L),!.
 % concept(X) :- setof(X,rname(X),L),!.
+
+% OK :
+    % * True si on teste concept avec en paramètre un identificateur de concept (par exemple : auteur)
+    % * False si on teste concept avec en paramètre un identificateur qui n'est pas un concept (ex : michelAnge)
+    % * Renvoie bien une liste L avec tous les concepts dedans ( ex : setof(X, concept(X), L) )
+concept(X) :- setof(Y,cnamea(Y),L),member(X,L).
+concept(X) :- setof(Y,cnamena(Y),L),member(X,L).
 
 % ; pour "ou"
 
