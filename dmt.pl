@@ -35,16 +35,26 @@ concept(X) :- setof(Y,cnamena(Y),L),member(X,L).
 
 % ; pour "ou"
 
-% autoref().
+% pas-autoref :
+% Pour une définition de concept de la Tbox de la forme C ≡ E, 
+% par récursion, on applique les définitions des concepts non atomiques jusqu'à que l'on ne peut plus
+% et on vérifie si ce n'est pas autoréférent 
+% (application de pas-autoref sur E si c'est un concept atomique ou non atomique, ou application de pas-autoref sur C1 et C2 si E = op(C1,C2))
+% Si on arrive à une expression sans opération (=seulement un concept), on arrive aux cas de base :
+    % * soit E est un concept atomique, d'après la définition, on sait que C est un concept non atomique, donc ils sont forcément différent, 
+    % donc il n'y a pas d'autoréférence
+    % * soit E est un concept non atomique, il faut vérifier qu'il ne s'agit pas de C, et si c'est le cas,
+    % on continue la récursion de pas-autoref sur la définition du concept non atomique E
+pas-autoref(_, C1) :- setof(X, cnamea(X), L), member(C1, L).
+pas-autoref(C, C1) :- setof((C1,Y), equiv(C1,Y), [C1,E]), cnamena(C1), C \= C1, pas-autoref(C,E).
+pas-autoref(C, not(E)) :- pas-autoref(C, E).
+pas-autoref(C, and(C1, C2)) :- pas-autoref(C, C1), pas-autoref(C, C2).
+pas-autoref(C, or(C1, C2)) :- pas-autoref(C, C1), pas-autoref(C, C2).
+pas-autoref(C, some(R, C1)) :- setof(X, rname(X), Lr), member(R, Lr), pas-autoref(C, C1).
+pas-autoref(C, all(R, C1)) :- setof(X, rname(X), Lr), member(R, Lr), pas-autoref(C, C1).
 
-% à gauche = concept non atomique, à droite = expression/concept générique
-% si à droite, il n'y a que des concepts atomiques, on sait que c'est impossible qu'il soit à droite donc pas-autoref
-pas-autoref(_, and(C1, C2), _) :- setof(X, cnamea(X), L), member(C1, L), member(C2, L).
-pas-autoref(_, or(C1, C2), _) :- setof(X, cnamea(X), L), member(C1, L), member(C2, L).
-pas-autoref(_, some(R, C), _) :- setof(X, rname(X), Lr), member(R, Lr), setof(Y, cnamea(Y), Lc), member(C, Lc).
-pas-autoref(_, all(R, C), _) :- setof(X, rname(X), Lr), member(R, Lr), setof(Y, cnamea(Y), Lc), member(C, Lc).
-% traitement où on doit appliquer d'autres définitions pour définir les concepts non atomiques
-% autres paramètres ??
+% autoref : il s'agit de la négation de pas-autoref
+autoref(C, E) :- not(pas-autoref(C, E)).
 
 % Mettre sous forme normale negative
 % traitement-Tbox(Cx) :- concept-atomique(Cx); traitement-Tbox(Cx-qqch).
