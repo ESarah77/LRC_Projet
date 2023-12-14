@@ -30,8 +30,8 @@ nnf(X,X).
     % * True si on teste concept avec en paramètre un identificateur de concept (par exemple : auteur)
     % * False si on teste concept avec en paramètre un identificateur qui n'est pas un concept (ex : michelAnge)
     % * Renvoie bien une liste L avec tous les concepts dedans ( ex : setof(X, concept(X), L) )
-concept(X) :- setof(Y,cnamea(Y),L),member(X,L).
-concept(X) :- setof(Y,cnamena(Y),L),member(X,L).
+concept(X) :- cnamea(X).
+concept(X) :- cnamena(X).
 
 % ; pour "ou"
 
