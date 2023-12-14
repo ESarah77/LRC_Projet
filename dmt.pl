@@ -116,7 +116,7 @@ applique_def_Tbox([C | L], ResPartiel, ResFinal) :- equiv(C, E), pas-autoref(C, 
                                                     applique_def_Tbox(L, Res, ResFinal).
 
 % applique_nnf(Lce, Lpartiel, Lfinal) : appel nnf sur tous les E des éléments de Lce, qui sont des couples (C,E),
-% et ajoute le résultat courant la liste des résultats précédents
+% et ajoute le résultat courant dans la liste des résultats précédents
 applique_nnf([], L, L).
 applique_nnf([(C, E) | L], ResPartiel, ResFinal) :- nnf(E, Ennf), concat(ResPartiel, [(C, Ennf)], Res),
                                                     applique_nnf_Tbox(L, Res, ResFinal).
@@ -130,6 +130,22 @@ traitement_Tbox(Tbox) :- setof(C, cnamena(C), L), applique_def_Tbox(L, [], Ldef)
 
 % Deploiement de TBox
 % traitement-ABox(Ix).
+
+% applique_def_Abox(Lic, Lpartiel, Lfinal) : appel applique_def sur tous les concepts C de la liste Lic,
+% où les éléments sont de la forme (I, C), et ajoute le résultat courant dans la liste des résultats précédents
+applique_def_Abox([], L, L).
+applique_def_Abox([(I, C) | L], ResPartiel, ResFinal) :- applique_def(C, CRes), concat(ResPartiel, [(I, CRes)], Res),
+                                                         applique_def_Abox(L, Res, ResFinal).
+
+% traitement_Abox :
+    % - Abi : liste contenant les assertions de concept
+    %     * récupère les assertions de concept sous la forme de couple (I, C)
+    %     * pour chaque concept, applique sa définition et d'autres jusqu'à n'avoir que des concepts atomiques
+    %     * met chaque expression sous forme normale négative
+    % - Abr : liste contenant les assertions de rôles
+    %     * récupère les assertions de concept sous la forme de tuple (A, B, R) 
+traitement_Abox(Abi, Abr) :- setof((I, C), inst(I, C), L), applique_def_Abox(L, [], Ldef), applique_nnf(Ldef, [], Abi),
+                             setof((A, B, R), instR(A, B, R), Abr).
 
 % Astuces:
 % =/2
