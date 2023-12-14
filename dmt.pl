@@ -45,13 +45,13 @@ concept(X) :- cnamena(X).
     % donc il n'y a pas d'autoréférence
     % * soit E est un concept non atomique, il faut vérifier qu'il ne s'agit pas de C, et si c'est le cas,
     % on continue la récursion de pas-autoref sur la définition du concept non atomique E
-pas-autoref(_, C1) :- setof(X, cnamea(X), L), member(C1, L).
-pas-autoref(C, C1) :- setof((C1,Y), equiv(C1,Y), [C1,E]), cnamena(C1), C \= C1, pas-autoref(C,E).
+pas-autoref(_, C1) :- cnamea(C1).
+pas-autoref(C, C1) :- cnamena(C1), C \= C1, equiv(C1, E), pas-autoref(C, E).
 pas-autoref(C, not(E)) :- pas-autoref(C, E).
 pas-autoref(C, and(C1, C2)) :- pas-autoref(C, C1), pas-autoref(C, C2).
 pas-autoref(C, or(C1, C2)) :- pas-autoref(C, C1), pas-autoref(C, C2).
-pas-autoref(C, some(R, C1)) :- setof(X, rname(X), Lr), member(R, Lr), pas-autoref(C, C1).
-pas-autoref(C, all(R, C1)) :- setof(X, rname(X), Lr), member(R, Lr), pas-autoref(C, C1).
+pas-autoref(C, some(R, C1)) :- rname(R), pas-autoref(C, C1).
+pas-autoref(C, all(R, C1)) :- rname(R), pas-autoref(C, C1).
 
 % autoref : il s'agit de la négation de pas-autoref
 autoref(C, E) :- not(pas-autoref(C, E)).
