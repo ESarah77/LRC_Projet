@@ -115,11 +115,11 @@ applique_def_Tbox([C | L], ResPartiel, ResFinal) :- equiv(C, E), pas-autoref(C, 
                                                     applique_def(C, ERes), concat(ResPartiel, [(C, ERes)], Res), 
                                                     applique_def_Tbox(L, Res, ResFinal).
 
-% applique_nnf_Tbox(Lce, Lpartiel, Lfinal) : appel nnf sur tous les E des éléments de Lce, qui sont des couples (C,E),
+% applique_nnf(Lce, Lpartiel, Lfinal) : appel nnf sur tous les E des éléments de Lce, qui sont des couples (C,E),
 % et ajoute le résultat courant la liste des résultats précédents
-applique_nnf_Tbox([], L, L).
-applique_nnf_Tbox([(C, E) | L], ResPartiel, ResFinal) :- nnf(E, Ennf), concat(ResPartiel, [(C, Ennf)], Res),
-                                                         applique_nnf_Tbox(L, Res, ResFinal).
+applique_nnf([], L, L).
+applique_nnf([(C, E) | L], ResPartiel, ResFinal) :- nnf(E, Ennf), concat(ResPartiel, [(C, Ennf)], Res),
+                                                    applique_nnf_Tbox(L, Res, ResFinal).
 
 % Tbox = résultat = [(CNA1, E1), (CNA2, E2), ...]
 % traitement_Tbox : 
