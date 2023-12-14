@@ -147,6 +147,8 @@ applique_def_Abox([(I, C) | L], ResPartiel, ResFinal) :- applique_def(C, CRes), 
 traitement_Abox(Abi, Abr) :- setof((I, C), inst(I, C), L), applique_def_Abox(L, [], Ldef), applique_nnf(Ldef, [], Abi),
                              setof((A, B, R), instR(A, B, R), Abr),!.
 
+premiere_etape(Tbox, Abi, Abr) :- traitement_Tbox(Tbox), traitement_Abox(Abi, Abr),!.
+
 % Astuces:
 % =/2
 % 'mia'= mia -> true
