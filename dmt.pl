@@ -99,6 +99,35 @@ autoref(C, E) :- not(pas-autoref(C, E)).
 % Mettre sous forme normale negative
 % traitement-Tbox(Cx) :- concept-atomique(Cx); traitement-Tbox(Cx-qqch).
 
+% applique_def(concept, res) : de manière récursive, applique la définition de concept et le met dans res
+applique_def(C, C) :- cnamea(C).
+applique_def(C, Res) :- cnamena(C), equiv(C, E), applique_def(E, Res).
+applique_def(not(C), not(Res)) :- applique_def(C, Res).
+applique_def(and(C1, C2), and(Res1, Res2)) :- applique_def(C1, Res1), applique_def(C2, Res2).
+applique_def(or(C1, C2), or(Res1, Res2)) :- applique_def(C1, Res1), applique_def(C2, Res2).
+applique_def(some(R, C), some(R, Res)) :- rname(R), concept(C), applique_def(C, Res).
+applique_def(all(R, C), all(R, Res)) :- rname(R), concept(C), applique_def(C, Res).
+
+% applique_def_Tbox(Lc, Lpartiel, Lfinal) : appel applique_def sur tous les concepts de Lc,
+% et ajoute le résultat courant dans la liste des résultats précédents
+applique_def_Tbox([], L, L).
+applique_def_Tbox([C | L], ResPartiel, ResFinal) :- equiv(C, E), pas-autoref(C, E), 
+                                                    applique_def(C, ERes), concat(ResPartiel, [(C, ERes)], Res), 
+                                                    applique_def_Tbox(L, Res, ResFinal).
+
+% applique_nnf_Tbox(Lce, Lpartiel, Lfinal) : appel nnf sur tous les E des éléments de Lce, qui sont des couples (C,E),
+% et ajoute le résultat courant la liste des résultats précédents
+applique_nnf_Tbox([], L, L).
+applique_nnf_Tbox([(C, E) | L], ResPartiel, ResFinal) :- nnf(E, Ennf), concat(ResPartiel, [(C, Ennf)], Res),
+                                                         applique_nnf_Tbox(L, Res, ResFinal).
+
+% Tbox = résultat = [(CNA1, E1), (CNA2, E2), ...]
+% traitement_Tbox : 
+    % * récupère les concepts non atomiques
+    % * pour chaque concept, applique sa définition et d'autres jusqu'à n'avoir que des concepts atomiques
+    % * met chaque expression sous forme normale négative 
+traitement_Tbox(Tbox) :- setof(C, cnamena(C), L), applique_def_Tbox(L, [], Ldef), applique_nnf_Tbox(Ldef, [], Tbox).
+
 % Deploiement de TBox
 % traitement-ABox(Ix).
 
