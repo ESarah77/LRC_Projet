@@ -65,8 +65,8 @@ nnf(X,X).
     % * True si on teste concept avec en paramètre un identificateur de concept (par exemple : auteur)
     % * False si on teste concept avec en paramètre un identificateur qui n'est pas un concept (ex : michelAnge)
     % * Renvoie bien une liste L avec tous les concepts dedans ( ex : setof(X, concept(X), L) )
-concept(X) :- cnamea(X).
-concept(X) :- cnamena(X).
+concept(X) :- cnamea(X),!.
+concept(X) :- cnamena(X),!.
 concept(not(C)) :- concept(C),!.
 concept(and(C1, C2)) :- concept(C1), concept(C2),!.
 concept(or(C1, C2)) :- concept(C1), concept(C2),!.
@@ -85,48 +85,48 @@ concept(all(R, C)) :- rname(R), concept(C),!.
     % donc il n'y a pas d'autoréférence
     % * soit E est un concept non atomique, il faut vérifier qu'il ne s'agit pas de C, et si c'est le cas,
     % on continue la récursion de pas-autoref sur la définition du concept non atomique E
-pas-autoref(_, C1) :- cnamea(C1).
-pas-autoref(C, C1) :- cnamena(C1), C \= C1, equiv(C1, E), pas-autoref(C, E).
-pas-autoref(C, not(E)) :- pas-autoref(C, E).
-pas-autoref(C, and(C1, C2)) :- pas-autoref(C, C1), pas-autoref(C, C2).
-pas-autoref(C, or(C1, C2)) :- pas-autoref(C, C1), pas-autoref(C, C2).
-pas-autoref(C, some(R, C1)) :- rname(R), pas-autoref(C, C1).
-pas-autoref(C, all(R, C1)) :- rname(R), pas-autoref(C, C1).
+pas-autoref(_, C1) :- cnamea(C1),!.
+pas-autoref(C, C1) :- cnamena(C1), C \= C1, equiv(C1, E), pas-autoref(C, E),!.
+pas-autoref(C, not(E)) :- concept(E), pas-autoref(C, E),!.
+pas-autoref(C, and(C1, C2)) :- concept(C1), concept(C2), pas-autoref(C, C1), pas-autoref(C, C2),!.
+pas-autoref(C, or(C1, C2)) :- concept(C1), concept(C2), pas-autoref(C, C1), pas-autoref(C, C2),!.
+pas-autoref(C, some(R, C1)) :- rname(R), concept(C1), pas-autoref(C, C1),!.
+pas-autoref(C, all(R, C1)) :- rname(R), concept(C1), pas-autoref(C, C1),!.
 
 % autoref : il s'agit de la négation de pas-autoref
-autoref(C, E) :- not(pas-autoref(C, E)).
+autoref(C, E) :- not(pas-autoref(C, E)),!.
 
 % Mettre sous forme normale negative
 % traitement-Tbox(Cx) :- concept-atomique(Cx); traitement-Tbox(Cx-qqch).
 
 % applique_def(concept, res) : de manière récursive, applique la définition de concept et le met dans res
-applique_def(C, C) :- cnamea(C).
-applique_def(C, Res) :- cnamena(C), equiv(C, E), applique_def(E, Res).
-applique_def(not(C), not(Res)) :- applique_def(C, Res).
-applique_def(and(C1, C2), and(Res1, Res2)) :- applique_def(C1, Res1), applique_def(C2, Res2).
-applique_def(or(C1, C2), or(Res1, Res2)) :- applique_def(C1, Res1), applique_def(C2, Res2).
-applique_def(some(R, C), some(R, Res)) :- rname(R), concept(C), applique_def(C, Res).
-applique_def(all(R, C), all(R, Res)) :- rname(R), concept(C), applique_def(C, Res).
+applique_def(C, C) :- cnamea(C),!.
+applique_def(C, Res) :- cnamena(C), equiv(C, E), applique_def(E, Res),!.
+applique_def(not(C), not(Res)) :- concept(C), applique_def(C, Res),!.
+applique_def(and(C1, C2), and(Res1, Res2)) :- concept(C1), concept(C2), applique_def(C1, Res1), applique_def(C2, Res2),!.
+applique_def(or(C1, C2), or(Res1, Res2)) :- concept(C1), concept(C2), applique_def(C1, Res1), applique_def(C2, Res2),!.
+applique_def(some(R, C), some(R, Res)) :- rname(R), concept(C), applique_def(C, Res),!.
+applique_def(all(R, C), all(R, Res)) :- rname(R), concept(C), applique_def(C, Res),!.
 
 % applique_def_Tbox(Lc, Lpartiel, Lfinal) : appel applique_def sur tous les concepts de Lc,
 % et ajoute le résultat courant dans la liste des résultats précédents
 applique_def_Tbox([], L, L).
-applique_def_Tbox([C | L], ResPartiel, ResFinal) :- equiv(C, E), pas-autoref(C, E), 
+applique_def_Tbox([C | L], ResPartiel, ResFinal) :- equiv(C, E), pas-autoref(C, E),!, 
                                                     applique_def(C, ERes), concat(ResPartiel, [(C, ERes)], Res), 
-                                                    applique_def_Tbox(L, Res, ResFinal).
+                                                    applique_def_Tbox(L, Res, ResFinal),!.
 
-% applique_nnf(Lce, Lpartiel, Lfinal) : appel nnf sur tous les E des éléments de Lce, qui sont des couples (C,E),
+% applique_nnf(Lce, Lpartiel, Lfinal) : appel nnf sur tous les E des éléments de Lce, qui sont des couples (X,E),
 % et ajoute le résultat courant dans la liste des résultats précédents
 applique_nnf([], L, L).
-applique_nnf([(C, E) | L], ResPartiel, ResFinal) :- nnf(E, Ennf), concat(ResPartiel, [(C, Ennf)], Res),
-                                                    applique_nnf_Tbox(L, Res, ResFinal).
+applique_nnf([(X, E) | L], ResPartiel, ResFinal) :- nnf(E, Ennf), concat(ResPartiel, [(X, Ennf)], Res),
+                                                    applique_nnf(L, Res, ResFinal),!.
 
 % Tbox = résultat = [(CNA1, E1), (CNA2, E2), ...]
 % traitement_Tbox : 
     % * récupère les concepts non atomiques
     % * pour chaque concept, applique sa définition et d'autres jusqu'à n'avoir que des concepts atomiques
     % * met chaque expression sous forme normale négative 
-traitement_Tbox(Tbox) :- setof(C, cnamena(C), L), applique_def_Tbox(L, [], Ldef), applique_nnf_Tbox(Ldef, [], Tbox).
+traitement_Tbox(Tbox) :- setof(C, cnamena(C), L), applique_def_Tbox(L, [], Ldef), applique_nnf(Ldef, [], Tbox),!.
 
 % Deploiement de TBox
 % traitement-ABox(Ix).
@@ -135,7 +135,7 @@ traitement_Tbox(Tbox) :- setof(C, cnamena(C), L), applique_def_Tbox(L, [], Ldef)
 % où les éléments sont de la forme (I, C), et ajoute le résultat courant dans la liste des résultats précédents
 applique_def_Abox([], L, L).
 applique_def_Abox([(I, C) | L], ResPartiel, ResFinal) :- applique_def(C, CRes), concat(ResPartiel, [(I, CRes)], Res),
-                                                         applique_def_Abox(L, Res, ResFinal).
+                                                         applique_def_Abox(L, Res, ResFinal),!.
 
 % traitement_Abox :
     % - Abi : liste contenant les assertions de concept
@@ -145,7 +145,7 @@ applique_def_Abox([(I, C) | L], ResPartiel, ResFinal) :- applique_def(C, CRes), 
     % - Abr : liste contenant les assertions de rôles
     %     * récupère les assertions de concept sous la forme de tuple (A, B, R) 
 traitement_Abox(Abi, Abr) :- setof((I, C), inst(I, C), L), applique_def_Abox(L, [], Ldef), applique_nnf(Ldef, [], Abi),
-                             setof((A, B, R), instR(A, B, R), Abr).
+                             setof((A, B, R), instR(A, B, R), Abr),!.
 
 % Astuces:
 % =/2
