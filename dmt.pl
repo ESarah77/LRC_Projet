@@ -32,6 +32,11 @@ nnf(X,X).
     % * Renvoie bien une liste L avec tous les concepts dedans ( ex : setof(X, concept(X), L) )
 concept(X) :- cnamea(X).
 concept(X) :- cnamena(X).
+concept(not(C)) :- concept(C),!.
+concept(and(C1, C2)) :- concept(C1), concept(C2),!.
+concept(or(C1, C2)) :- concept(C1), concept(C2),!.
+concept(some(R, C)) :- rname(R), concept(C),!.
+concept(all(R, C)) :- rname(R), concept(C),!.
 
 % ; pour "ou"
 
