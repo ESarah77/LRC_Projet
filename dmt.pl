@@ -33,6 +33,17 @@ chiffre_car(7,'7').
 chiffre_car(8,'8').
 chiffre_car(9,'9').
 
+%--------------Requetes----------------
+% Tbox original
+% [(sculpteur,and(personne,some(aCree,sculpture))),
+% (auteur,and(personne,some(aEcrit,livre))),
+% (editeur,and(personne,and(not(some(aEcrit,livre)),some(aEdite,livre)))),
+% (parent,and(personne,some(aEnfant,anything)))]
+
+% Abox original
+%[(michelAnge,personne), (david,sculpture), (sonnets,livre), (vinci,personne), (joconde,objet)]
+%[(michelAnge, david, aCree), (michelAnge, sonnet, aEcrit), (vinci, joconde, aCree)]
+
 %--------------Partie I----------------
 % Mettre sous forme normale negative
 % récursion gauche: La cible la plus à gauche dans le corps d’une règle est la même
@@ -116,11 +127,21 @@ applique_def_Tbox([C | L], ResPartiel, ResFinal) :- equiv(C, E), pas-autoref(C, 
                                                     applique_def(C, ERes), concat(ResPartiel, [(C, ERes)], Res), 
                                                     applique_def_Tbox(L, Res, ResFinal),!.
 
+% Résultat du part test :
+% ?- applique_def_Tbox([auteur, editeur, parent, sculpteur],[],R).
+% R = [(auteur, and(personne, some(aEcrit, livre))), (editeur, and(personne, and(not(some(aEcrit, livre)), some(aEdite, livre)))), (parent, and(personne, some(aEnfant, anything))), (sculpteur, and(personne, some(aCree, sculpture)))].
+
+
 % applique_nnf(Lce, Lpartiel, Lfinal) : appel nnf sur tous les E des éléments de Lce, qui sont des couples (X,E),
 % et ajoute le résultat courant dans la liste des résultats précédents
 applique_nnf([], L, L).
 applique_nnf([(X, E) | L], ResPartiel, ResFinal) :- nnf(E, Ennf), concat(ResPartiel, [(X, Ennf)], Res),
                                                     applique_nnf(L, Res, ResFinal),!.
+
+% Résultat :
+% ?- applique_nnf([(auteur, and(personne, some(aEcrit, livre))), (editeur, and(personne, and(not(some(aEcrit, livre)), some(aEdite, livre)))), (parent, and(personne, some(aEnfant, anything))), (sculpteur, and(personne, some(aCree, sculpture)))],[],Rnnf).
+% Rnnf = [(auteur, and(personne, some(aEcrit, livre))), (editeur, and(personne, and(all(aEcrit, not(livre)), some(aEdite, livre)))), (parent, and(personne, some(aEnfant, anything))), (sculpteur, and(personne, some(aCree, sculpture)))].
+
 
 % Tbox = résultat = [(CNA1, E1), (CNA2, E2), ...]
 % traitement_Tbox : 
@@ -129,8 +150,10 @@ applique_nnf([(X, E) | L], ResPartiel, ResFinal) :- nnf(E, Ennf), concat(ResPart
     % * met chaque expression sous forme normale négative 
 traitement_Tbox(Tbox) :- setof(C, cnamena(C), L), applique_def_Tbox(L, [], Ldef), applique_nnf(Ldef, [], Tbox),!.
 
-% Deploiement de TBox
-% traitement-ABox(Ix).
+% Résultat :
+% ?- traitement_Tbox(Tbox).
+% Tbox = [(auteur, and(personne, some(aEcrit, livre))), (editeur, and(personne, and(all(aEcrit, not(livre)), some(aEdite, livre)))), (parent, and(personne, some(aEnfant, anything))), (sculpteur, and(personne, some(aCree, sculpture)))].
+
 
 applique_Tbox(C, _, C) :- cnamea(C),!.
 applique_Tbox(C, Tbox, E) :- cnamena(C), member((C,E), Tbox),!.
@@ -157,7 +180,20 @@ applique_def_Abox([(I, C) | L], Tbox, ResPartiel, ResFinal) :- applique_Tbox(C, 
 traitement_Abox(Tbox, Abi, Abr) :- setof((I, C), inst(I, C), L), applique_def_Abox(L, Tbox, [], Ldef), applique_nnf(Ldef, [], Abi),
                              setof((A, B, R), instR(A, B, R), Abr),!.
 
+% Résultats :
+% ?- traitement_Abox(Abi,Abr).
+% Abi = [(david, sculpture), (joconde, objet), (michelAnge, personne), (sonnets, livre), (vinci, personne)],
+% Abr = [(michelAnge, david, aCree), (michelAnge, sonnets, aEcrit), (vinci, joconde, aCree)].
+
+
 premiere_etape(Tbox, Abi, Abr) :- traitement_Tbox(Tbox), traitement_Abox(Tbox, Abi, Abr),!.
+
+% Résultats :
+% ?- premiere_etape(Tbox,Abi,Abr).
+% Tbox = [(auteur, and(personne, some(aEcrit, livre))), (editeur, and(personne, and(all(aEcrit, not(livre)), some(aEdite, livre)))), (parent, and(personne, some(aEnfant, anything))), (sculpteur, and(personne, some(aCree, sculpture)))],
+% Abi = [(david, sculpture), (joconde, objet), (michelAnge, personne), (sonnets, livre), (vinci, personne)],
+% Abr = [(michelAnge, david, aCree), (michelAnge, sonnets, aEcrit), (vinci, joconde, aCree)].
+
 
 % Astuces:
 % =/2
