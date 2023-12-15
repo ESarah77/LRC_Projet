@@ -132,11 +132,20 @@ traitement_Tbox(Tbox) :- setof(C, cnamena(C), L), applique_def_Tbox(L, [], Ldef)
 % Deploiement de TBox
 % traitement-ABox(Ix).
 
+applique_Tbox(C, _, C) :- cnamea(C),!.
+applique_Tbox(C, Tbox, Res) :- cnamena(C), member((C,E), Tbox), applique_Tbox(E, Tbox, Res),!.
+applique_Tbox(not(C), Tbox, Res) :- concept(C), applique_Tbox(C, Tbox, Res),!.
+applique_Tbox(and(C1, C2), Tbox, and(Res1, Res2)) :- concept(C1), concept(C2), applique_Tbox(C1, Tbox, Res1), applique_Tbox(C2, Tbox, Res2),!.
+applique_def(or(C1, C2), Tbox, or(Res1, Res2)) :- concept(C1), concept(C2), applique_Tbox(C1, Tbox, Res1), applique_Tbox(C2, Tbox, Res2),!.
+applique_def(some(R, C), Tbox, some(R, Res)) :- rname(R), concept(C), applique_Tbox(C, Tbox, Res),!.
+applique_def(all(R, C), Tbox, all(R, Res)) :- rname(R), concept(C), applique_Tbox(C, Tbox, Res),!.
+
 % applique_def_Abox(Lic, Lpartiel, Lfinal) : appel applique_def sur tous les concepts C de la liste Lic,
 % où les éléments sont de la forme (I, C), et ajoute le résultat courant dans la liste des résultats précédents
-applique_def_Abox([], L, L).
-applique_def_Abox([(I, C) | L], ResPartiel, ResFinal) :- applique_def(C, CRes), concat(ResPartiel, [(I, CRes)], Res),
-                                                         applique_def_Abox(L, Res, ResFinal),!.
+
+applique_def_Abox([], _, L, L).
+applique_def_Abox([(I, C) | L], Tbox, ResPartiel, ResFinal) :- applique_Tbox(C, Tbox, CRes), concat(ResPartiel, [(I, CRes)], Res),
+                                                         applique_def_Abox(L, Tbox, Res, ResFinal),!.
 
 % traitement_Abox :
     % - Abi : liste contenant les assertions de concept
@@ -145,10 +154,10 @@ applique_def_Abox([(I, C) | L], ResPartiel, ResFinal) :- applique_def(C, CRes), 
     %     * met chaque expression sous forme normale négative
     % - Abr : liste contenant les assertions de rôles
     %     * récupère les assertions de concept sous la forme de tuple (A, B, R) 
-traitement_Abox(Abi, Abr) :- setof((I, C), inst(I, C), L), applique_def_Abox(L, [], Ldef), applique_nnf(Ldef, [], Abi),
+traitement_Abox(Tbox, Abi, Abr) :- setof((I, C), inst(I, C), L), applique_def_Abox(L, Tbox, [], Ldef), applique_nnf(Ldef, [], Abi),
                              setof((A, B, R), instR(A, B, R), Abr),!.
 
-premiere_etape(Tbox, Abi, Abr) :- traitement_Tbox(Tbox), traitement_Abox(Abi, Abr),!.
+premiere_etape(Tbox, Abi, Abr) :- traitement_Tbox(Tbox), traitement_Abox(Tbox, Abi, Abr),!.
 
 % Astuces:
 % =/2
