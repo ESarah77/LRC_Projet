@@ -205,6 +205,7 @@ premiere_etape(Tbox, Abi, Abr) :- traitement_Tbox(Tbox), traitement_Abox(Tbox, A
 % acquisition_prop_type1:
     % * lecture de l'instance I
     % * lecture du concept/de l'expression C
+    % * vérification du concept C
     % * application sur not(C), des axiomes de la Tbox traitée, jusqu'à n'avoir que des concepts atomiques
     % * mise sous forme normale négative 
     % * Abi1 = Abi + la nouvelle proposition
@@ -212,6 +213,30 @@ acquisition_prop_type1(Abi, Abi1, Tbox) :-
     nl, write('Veuillez entrer le nom de l''instance :'), nl, read(I),
     nl, write('Veuillez entrer le concept ou l''expression de cette instance :'), nl, read(C), concept(C),
     applique_Tbox(not(C), Tbox, E), nnf(E, Res), concat(Abi, [(I, Res)], Abi1),!.
+
+% acquisition_prop_type2:
+    % * lecture du premier concept C1, puis du deuxième concept C2 
+    % * vérification des concepts C1 et C2 
+    % * application sur not(and(C1, C2)), des axiomes de la Tbox traitée, jusqu'à n'avoir que des concepts atomiques 
+    % * mise sous forme normale négative 
+    % * Abi1 = Abi + la nouvelle proposition    
+acquisition_prop_type2(Abi, Abi1, Tbox) :-
+    nl, write('Veuillez entrer le premier concept ou expression de la proposition :'), nl, read(C1), concept(C1),
+    nl, write('Veuillez entrer le deuxième concept ou expression de la proposition :'), nl, read(C2), concept(C2),
+    applique_Tbox(not(and(C1, C2)), Tbox, E), nnf(E, Res), genere(I), concat(Abi, [(I, Res)], Abi1),!.
+
+deuxieme_etape(Abi,Abi1,Tbox) :- saisie_et_traitement_prop_a_demontrer(Abi,Abi1,Tbox).
+
+saisie_et_traitement_prop_a_demontrer(Abi,Abi1,Tbox) :- 
+    nl,write('Entrez le numero du type de proposition que vous voulez demontrer :'),nl,
+    write('1 Une instance donnee appartient a un concept donne.'),nl,
+    write('2 Deux concepts n"ont pas d"elements en commun(ils ont une intersection vide).'),nl, 
+    read(R), suite(R,Abi,Abi1,Tbox).
+
+suite(1,Abi,Abi1,Tbox) :- acquisition_prop_type1(Abi,Abi1,Tbox),!.
+suite(2,Abi,Abi1,Tbox) :- acquisition_prop_type2(Abi,Abi1,Tbox),!.
+suite(_,Abi,Abi1,Tbox) :- nl,write('Cette reponse est incorrecte.'),nl,
+                          saisie_et_traitement_prop_a_demontrer(Abi,Abi1,Tbox).
 
 %--------------Partie III----------------
 %Trouver les successeurs
