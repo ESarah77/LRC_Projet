@@ -202,7 +202,12 @@ premiere_etape(Tbox, Abi, Abr) :- traitement_Tbox(Tbox), traitement_Abox(Tbox, A
 % structure recursive + unification
 
 %--------------Partie II----------------
-
+% acquisition_prop_type1:
+    % * lecture de l'instance I
+    % * lecture du concept/de l'expression C
+    % * application sur not(C), des axiomes de la Tbox traitée, jusqu'à n'avoir que des concepts atomiques
+    % * mise sous forme normale négative 
+    % * Abi1 = Abi + la nouvelle proposition
 acquisition_prop_type1(Abi, Abi1, Tbox) :-
     nl, write('Veuillez entrer le nom de l''instance :'), nl, read(I),
     nl, write('Veuillez entrer le concept ou l''expression de cette instance :'), nl, read(C),
