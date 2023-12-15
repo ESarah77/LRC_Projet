@@ -167,6 +167,11 @@ premiere_etape(Tbox, Abi, Abr) :- traitement_Tbox(Tbox), traitement_Abox(Tbox, A
 
 %--------------Partie II----------------
 
+acquisition_prop_type1(Abi, Abi1, Tbox) :-
+    nl, write('Veuillez entrer le nom de l''instance :'), nl, read(I),
+    nl, write('Veuillez entrer le concept ou l''expression de cette instance :'), nl, read(C),
+    applique_Tbox(not(C), Tbox, E), nnf(E, Res), concat(Abi, [(I, Res)], Abi1),!.
+
 %--------------Partie III----------------
 %Trouver les successeurs
 %individu(i).
