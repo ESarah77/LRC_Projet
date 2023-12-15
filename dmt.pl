@@ -246,3 +246,16 @@ suite(_,Abi,Abi1,Tbox) :- nl,write('Cette reponse est incorrecte.'),nl,
 %individu(s(I)) :- individu(I)
 % res => i, s(i), s(s(i))...
 
+tri_Abox([], Lie, Lpt, Li, Lu, Ls).
+tri_Abox([(I, some(R, C)) | Abi], Lie, Lpt, Li, Lu, Ls) :- rname(R), concept(C), concat(LiePartiel, [(I, some(R, C))], Lie), 
+                                                           tri_Abox(Abi, LiePartiel, Lpt, Li, Lu, Ls),!.
+tri_Abox([(I, all(R, C)) | Abi], Lie, Lpt, Li, Lu, Ls) :- rname(R), concept(C), concat(LptPartiel, [(I, all(R, C))], Lpt), 
+                                                          tri_Abox(Abi, Lie, LptPartiel, Li, Lu, Ls),!.
+tri_Abox([(I, and(C1, C2)) | Abi], Lie, Lpt, Li, Lu, Ls) :- concept(C1), concept(C2), concat(LiPartiel, [(I, and(C1, C2))], Li), 
+                                                            tri_Abox(Abi, Lie, Lpt, LiPartiel, Lu, Ls),!.                                                       
+tri_Abox([(I, or(C1, C2)) | Abi], Lie, Lpt, Li, Lu, Ls) :- concept(C1), concept(C2), concat(LuPartiel, [(I, or(C1, C2))], Lu), 
+                                                           tri_Abox(Abi, Lie, Lpt, Li, LuPartiel, Ls),!.  
+tri_Abox([(I, not(C)) | Abi], Lie, Lpt, Li, Lu, Ls) :- cnamea(C), concat(LsPartiel, [(I, not(C))], Ls), 
+                                                       tri_Abox(Abi, Lie, Lpt, Li, Lu, LsPartiel),!.  
+tri_Abox([(I, C) | Abi], Lie, Lpt, Li, Lu, Ls) :- cnamea(C), concat(LsPartiel, [(I, C)], Ls), 
+                                                  tri_Abox(Abi, Lie, Lpt, Li, Lu, LsPartiel),!.
