@@ -17,8 +17,19 @@ Il prend donc en paramètre une expression, et renvoie true s'il s'agit bien d'u
 concept(E):
     * E : expression dont on veut savoir s'il s'agit bien d'un concept
 
-(Description des tests réalisés)
-
+#### Tests réalisés et les explications :
+```prolog
+?- concept(X).
+X = personne.
+% Parce qu'on a mis un cut '!' en fin de la première clause :
+% concept(X) :- cnamea(X),!.
+?- concept(livre).
+true.
+?- concept(aCree).
+false.
+?- concept(qqch).
+false.
+```
 
 ### `pas-autoref`
 Le prédicat `pas-autoref` permet de vérifier si un concept n'est pas auto-référent. Ce prédicat sera notamment utilisé plus tard pour le traitement de la Tbox, qui vont vérifier pour toutes leurs axiomes, si elles sont auto-référentes.
@@ -34,10 +45,9 @@ pas-autoref(C, E):
     - C : concept
     - E : expression équivalente du concept C
 
-#### Description des tests réalisés
+#### Tests réalisés et les explications :
 - tests de toutes les définitions dans `equiv` du fichier ta.pl
 - on modifie ta.pl en définissant `sculpture` comme un concept non atomique et en ajoutant sa définition dans `equiv` (cf exemple de Tbox circulaire de l'énoncé) et aussi un nom de rôle `creePar`（seulement pour vérifier le fonctionnement du prédicat `autoref`.
-
 L'explication d'un processus d'exécution :
 ```prolog
 [trace]  ?- autoref(sculpteur,and(personne,some(aCree,sculpture))).
@@ -111,7 +121,6 @@ L'explication d'un processus d'exécution :
    Fail: (10) autoref(sculpteur, and(personne, some(aCree, sculpture))) ? creep
 false.
 ```
-
 Les autres requêtes :
 ```prolog
 ?- autoref(sculpture, and(objet, all(creePar,sculpteur))).
@@ -130,7 +139,6 @@ false.
 false.
 ```
 
-
 ### `autoref`
 Le prédicat `pas-autoref` permet de vérifier si un concept est auto-référent. 
 
@@ -140,9 +148,8 @@ autoref(C, E):
     - C : concept
     - E : expression équivalente du concept C
 
-(Description des tests réalisés)
+#### Part Test
 pareil que `pas-autoref`, on vérifie juste qu'il s'agit bien de la négation
-
 
 ### `applique_def`
 Le prédicat `applique_def` applique la définition d'un concept et d'autres définitions de la Tbox, jusqu'à ce qu'il n'y ait plus que des concepts atomiques.
@@ -153,8 +160,8 @@ applique_def(concept, res) :
     - concept : concept dont on veut trouver l'expression équivalente avec uniquement des concepts atomiques
     - res : expression équivalente de concept qu'on a trouvé
 
-(Description des tests réalisés)
-
+#### Part Test
+Ce prédicat est utilisé par le prédicat suivant `applique_def_Tbox`, il suffit donc de vérifier la fonctionnalité de ce dernier.
 
 ### `applique_def_Tbox`
 Le prédicat `applique_def_Tbox` applique `applique_def` sur tous les concepts de la Tbox.
@@ -166,8 +173,12 @@ applique_def_Tbox(L, ResPartiel, ResFinal) :
     - ResPartiel : liste des résultats à cet instant/appel récursif-là. Chaque élément est de la forme (C, E), où C est le concept, et E est son expression équivalente après traitement
     - ResFinal : liste des résultats lorsqu'on a traité tous les concepts de la Tbox. Chaque élément est de la forme (C, E), où C est le concept, et E est son expression équivalente après traitement
 
-(Description des tests réalisés)
-
+#### Résultat du part test :
+```prolog
+% `applique_def_Tbox` sur tous les conceptions non atomiques :
+?- applique_def_Tbox([auteur, editeur, parent, sculpteur],[],R).
+R = [(auteur, and(personne, some(aEcrit, livre))), (editeur, and(personne, and(not(some(aEcrit, livre)), some(aEdite, livre)))), (parent, and(personne, some(aEnfant, anything))), (sculpteur, and(personne, some(aCree, sculpture)))].
+```
 
 ### `applique_nnf`
 Le prédicat `applique_nnf` applique `nnf` sur toutes les expressions qui ont uniquement des concepts atomiques.
@@ -178,8 +189,11 @@ applique_nnf(L, ResPartiel, ResFinal) :
     - ResPartiel : liste des résultats à cet instant/appel récursif-là. Chaque élément est de la forme (C, E), où C est le concept, et E est son expression équivalente après traitement
     - ResFinal : liste des résultats lorsqu'on a traité tous les concepts de la Tbox. Chaque élément est de la forme (C, E), où C est le concept, et E est son expression équivalente après traitement
 
-(Description des tests réalisés)
-
+#### Résultat du part test :
+```prolog
+?- applique_nnf([(auteur, and(personne, some(aEcrit, livre))), (editeur, and(personne, and(not(some(aEcrit, livre)), some(aEdite, livre)))), (parent, and(personne, some(aEnfant, anything))), (sculpteur, and(personne, some(aCree, sculpture)))],[],Rnnf).
+Rnnf = [(auteur, and(personne, some(aEcrit, livre))), (editeur, and(personne, and(all(aEcrit, not(livre)), some(aEdite, livre)))), (parent, and(personne, some(aEnfant, anything))), (sculpteur, and(personne, some(aCree, sculpture)))].
+```
 
 ### `traitement_Tbox`
 Le prédicat `traitement_Tbox` permet d'obtenir tous les axiomes de la Tbox sous la forme de couples (C, E), où C est un concept et E est son expression équivalente qui ne contient que des concepts atomiques et qui est sous forme normale négative.
@@ -191,8 +205,12 @@ Ce prédicat :
 traitement_Tbox(Tbox) :
     Tbox : liste des axiomes de la Tbox sous la forme de couples (C, E), où C est un concept et E est son expression équivalente qui ne contient que des concepts atomiques et qui est sous forme normale négative.
 
-(Description des tests réalisés)
-
+#### Résultat du part test :
+```prolog
+% Vérification de fonctionnement du prédicat `traitement_Tbox` en utilisant le résultat de l'application de `applique_nnf`:
+?- traitement_Tbox([(auteur, and(personne, some(aEcrit, livre))), (editeur, and(personne, and(all(aEcrit, not(livre)), some(aEdite, livre)))), (parent, and(personne, some(aEnfant, anything))), (sculpteur, and(personne, some(aCree, sculpture)))]).
+true.
+```
 
 ### `applique_def_Abox`
 Le prédicat `applique_def_Abox` applique `applique_def` sur tous les concepts de la Abox.
@@ -203,9 +221,8 @@ applique_def_Abox(L, ResPartiel, ResFinal) :
     - L : liste des assertions de concept de la Abox. Chaque élément est de la forme (I, C), où I est une instance et C est le concept
     - ResPartiel : liste des résultats à cet instant/appel récursif-là. Chaque élément est de la forme (I, E), où I est une instance, et E est l'expression équivalente du concept C après traitement
     - ResFinal : liste des résultats lorsqu'on a traité toutes les assertions de concept de la Abox. Chaque élément est de la forme (I, E), où I est une instance, et E est l'expression équivalente du concept C après traitement
-
-(Description des tests réalisés)
-
+#### Part Test
+Ce prédicat est utilisé par le prédicat suivant `traitement_Abox`, il suffit donc de vérifier la fonctionnalité de ce dernier.
 
 ### `traitement_Abox`
 Le prédicat `traitement_Abox` permet d'obtenir toutes les assertions de concept de la Abox sous la forme de couples (I, E), où I est une instance et E est son expression équivalente à son concept qui ne contient que des concepts atomiques et qui est sous forme normale négative, et toutes les assertions de rôle de la Abox.
@@ -221,12 +238,22 @@ traitement_Abox(Abi, Abr) :
     - Abi : liste des assertions de concept de la Abox après traitement. Chaque élément est de la forme (I, E), où I est une instance, et E l'expression équivalente à son concept
     - Abr : liste des assertions de rôle de la Abox. Chaque élément est de la forme (A, B, R), où A et B sont des instances, et R un rôle
 
-(Description des tests réalisés)
-
+#### Résultat du part test :
+```prolog
+?- traitement_Abox(Abi,Abr).
+Abi = [(david, sculpture), (joconde, objet), (michelAnge, personne), (sonnets, livre), (vinci, personne)],
+Abr = [(michelAnge, david, aCree), (michelAnge, sonnets, aEcrit), (vinci, joconde, aCree)].
+```
 
 ### `premiere_etape`
 (Description du rôle de ce prédicat)
 
 (Explication de l'implémentation + Paramètres)
 
-(Description des tests réalisés)
+#### Résultat du part test :
+```prolog
+?- premiere_etape(Tbox,Abi,Abr).
+Tbox = [(auteur, and(personne, some(aEcrit, livre))), (editeur, and(personne, and(all(aEcrit, not(livre)), some(aEdite, livre)))), (parent, and(personne, some(aEnfant, anything))), (sculpteur, and(personne, some(aCree, sculpture)))],
+Abi = [(david, sculpture), (joconde, objet), (michelAnge, personne), (sonnets, livre), (vinci, personne)],
+Abr = [(michelAnge, david, aCree), (michelAnge, sonnets, aEcrit), (vinci, joconde, aCree)].
+```
