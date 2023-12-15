@@ -85,7 +85,8 @@ concept(all(R, C)) :- rname(R), concept(C),!.
     % donc il n'y a pas d'autoréférence
     % * soit E est un concept non atomique, il faut vérifier qu'il ne s'agit pas de C, et si c'est le cas,
     % on continue la récursion de pas-autoref sur la définition du concept non atomique E
-pas-autoref(_, C1) :- cnamea(C1),!.
+% pas-autoref(_, C1) :- cnamea(C1),!.
+pas-autoref(C, C1) :- cnamea(C1), C \= C1,!.
 pas-autoref(C, C1) :- cnamena(C1), C \= C1, equiv(C1, E), pas-autoref(C, E),!.
 pas-autoref(C, not(E)) :- concept(E), pas-autoref(C, E),!.
 pas-autoref(C, and(C1, C2)) :- concept(C1), concept(C2), pas-autoref(C, C1), pas-autoref(C, C2),!.
