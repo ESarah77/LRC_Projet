@@ -133,12 +133,12 @@ traitement_Tbox(Tbox) :- setof(C, cnamena(C), L), applique_def_Tbox(L, [], Ldef)
 % traitement-ABox(Ix).
 
 applique_Tbox(C, _, C) :- cnamea(C),!.
-applique_Tbox(C, Tbox, Res) :- cnamena(C), member((C,E), Tbox), applique_Tbox(E, Tbox, Res),!.
-applique_Tbox(not(C), Tbox, Res) :- concept(C), applique_Tbox(C, Tbox, Res),!.
+applique_Tbox(C, Tbox, E) :- cnamena(C), member((C,E), Tbox),!.
+applique_Tbox(not(C), Tbox, not(Res)) :- concept(C), applique_Tbox(C, Tbox, Res),!.
 applique_Tbox(and(C1, C2), Tbox, and(Res1, Res2)) :- concept(C1), concept(C2), applique_Tbox(C1, Tbox, Res1), applique_Tbox(C2, Tbox, Res2),!.
-applique_def(or(C1, C2), Tbox, or(Res1, Res2)) :- concept(C1), concept(C2), applique_Tbox(C1, Tbox, Res1), applique_Tbox(C2, Tbox, Res2),!.
-applique_def(some(R, C), Tbox, some(R, Res)) :- rname(R), concept(C), applique_Tbox(C, Tbox, Res),!.
-applique_def(all(R, C), Tbox, all(R, Res)) :- rname(R), concept(C), applique_Tbox(C, Tbox, Res),!.
+applique_Tbox(or(C1, C2), Tbox, or(Res1, Res2)) :- concept(C1), concept(C2), applique_Tbox(C1, Tbox, Res1), applique_Tbox(C2, Tbox, Res2),!.
+applique_Tbox(some(R, C), Tbox, some(R, Res)) :- rname(R), concept(C), applique_Tbox(C, Tbox, Res),!.
+applique_Tbox(all(R, C), Tbox, all(R, Res)) :- rname(R), concept(C), applique_Tbox(C, Tbox, Res),!.
 
 % applique_def_Abox(Lic, Lpartiel, Lfinal) : appel applique_def sur tous les concepts C de la liste Lic,
 % où les éléments sont de la forme (I, C), et ajoute le résultat courant dans la liste des résultats précédents
