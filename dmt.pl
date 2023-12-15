@@ -5,6 +5,8 @@ concat([X|Y],L1,[X|L2]) :- concat(Y,L1,L2).
 enleve(X,[X|L],L) :-!.
 enleve(X,[Y|L],[Y|L2]) :- enleve(X,L,L2).
 
+compteur(1).
+
 genere(Nom) :-  compteur(V),nombre(V,L1),
                 concat([105,110,115,116],L1,L2),
                 V1 is V+1,
