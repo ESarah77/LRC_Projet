@@ -34,9 +34,101 @@ pas-autoref(C, E):
     - C : concept
     - E : expression équivalente du concept C
 
-(Description des tests réalisés)
+#### Description des tests réalisés
 - tests de toutes les définitions dans `equiv` du fichier ta.pl
-- on modifie ta.pl en définissant `sculpture` comme un concept non atomique et en ajoutant sa définition dans `equiv` (cf exemple de Tbox circulaire de l'énoncé)
+- on modifie ta.pl en définissant `sculpture` comme un concept non atomique et en ajoutant sa définition dans `equiv` (cf exemple de Tbox circulaire de l'énoncé) et aussi un nom de rôle `creePar`（seulement pour vérifier le fonctionnement du prédicat `autoref`.
+
+L'explication d'un processus d'exécution :
+```prolog
+[trace]  ?- autoref(sculpteur,and(personne,some(aCree,sculpture))).
+   Call: (10) autoref(sculpteur, and(personne, some(aCree, sculpture))) ? creep
+^  Call: (11) not(pas-autoref(sculpteur, and(personne, some(aCree, sculpture)))) ? creep
+   Call: (12) pas-autoref(sculpteur, and(personne, some(aCree, sculpture))) ? creep
+
+% Au début, Prolog essaie d'utiliser les premières deux règles du pas-autoref => fail :
+
+   Call: (13) cnamea(and(personne, some(aCree, sculpture))) ? creep
+   Fail: (13) cnamea(and(personne, some(aCree, sculpture))) ? creep
+
+   Redo: (12) pas-autoref(sculpteur, and(personne, some(aCree, sculpture))) ? creep
+   Call: (13) cnamena(and(personne, some(aCree, sculpture))) ? creep
+   Fail: (13) cnamena(and(personne, some(aCree, sculpture))) ? creep
+
+% Puis il ne peut que utiliser la règle "and". Il vérifie ensuite les littéraux négatifs de cette règle un par un :
+
+   Redo: (12) pas-autoref(sculpteur, and(personne, some(aCree, sculpture))) ? creep
+   Call: (13) concept(personne) ? creep
+   Call: (14) cnamea(personne) ? creep
+   Exit: (14) cnamea(personne) ? creep
+   Exit: (13) concept(personne) ? creep
+   Call: (13) concept(some(aCree, sculpture)) ? creep
+   Call: (14) cnamea(some(aCree, sculpture)) ? creep
+   Fail: (14) cnamea(some(aCree, sculpture)) ? creep
+   Redo: (13) concept(some(aCree, sculpture)) ? creep
+   Call: (14) cnamena(some(aCree, sculpture)) ? creep
+   Fail: (14) cnamena(some(aCree, sculpture)) ? creep
+   Redo: (13) concept(some(aCree, sculpture)) ? creep
+   Call: (14) rname(aCree) ? creep
+   Exit: (14) rname(aCree) ? creep
+   Call: (14) concept(sculpture) ? creep
+   Call: (15) cnamea(sculpture) ? creep
+   Exit: (15) cnamea(sculpture) ? creep
+   Exit: (14) concept(sculpture) ? creep
+   Exit: (13) concept(some(aCree, sculpture)) ? creep
+
+   Call: (13) pas-autoref(sculpteur, personne) ? creep
+   Call: (14) cnamea(personne) ? creep
+   Exit: (14) cnamea(personne) ? creep
+   Call: (14) sculpteur\=personne ? creep
+   Exit: (14) sculpteur\=personne ? creep
+   Exit: (13) pas-autoref(sculpteur, personne) ? creep
+
+   Call: (13) pas-autoref(sculpteur, some(aCree, sculpture)) ? creep
+   Call: (14) cnamea(some(aCree, sculpture)) ? creep
+   Fail: (14) cnamea(some(aCree, sculpture)) ? creep
+   Redo: (13) pas-autoref(sculpteur, some(aCree, sculpture)) ? creep
+   Call: (14) cnamena(some(aCree, sculpture)) ? creep
+   Fail: (14) cnamena(some(aCree, sculpture)) ? creep
+   Redo: (13) pas-autoref(sculpteur, some(aCree, sculpture)) ? creep
+   Call: (14) rname(aCree) ? creep
+   Exit: (14) rname(aCree) ? creep
+   Call: (14) concept(sculpture) ? creep
+   Call: (15) cnamea(sculpture) ? creep
+   Exit: (15) cnamea(sculpture) ? creep
+   Exit: (14) concept(sculpture) ? creep
+   Call: (14) pas-autoref(sculpteur, sculpture) ? creep
+   Call: (15) cnamea(sculpture) ? creep
+   Exit: (15) cnamea(sculpture) ? creep
+   Call: (15) sculpteur\=sculpture ? creep
+   Exit: (15) sculpteur\=sculpture ? creep
+   Exit: (14) pas-autoref(sculpteur, sculpture) ? creep
+   Exit: (13) pas-autoref(sculpteur, some(aCree, sculpture)) ? creep
+
+   Exit: (12) pas-autoref(sculpteur, and(personne, some(aCree, sculpture))) ? creep
+
+^  Fail: (11) not(user:pas-autoref(sculpteur, and(personne, some(aCree, sculpture)))) ? creep
+
+   Fail: (10) autoref(sculpteur, and(personne, some(aCree, sculpture))) ? creep
+false.
+```
+
+Les autres requêtes :
+```prolog
+?- autoref(sculpture, and(objet, all(creePar,sculpteur))).
+true.
+
+?- autoref(auteur,and(personne,some(aEcrit,livre))).
+false.
+
+?- autoref(editeur, and(personne,and(not(some(aEcrit,livre)),some(aEdite,livre)))).
+false.
+
+?- autoref(parent, and(personne,some(aEnfant,anything))).
+false.
+
+?- autoref(sculpteur,and(personne,some(aCree,sculpture))).
+false.
+```
 
 
 ### `autoref`
