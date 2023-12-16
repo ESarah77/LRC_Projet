@@ -151,16 +151,17 @@ Il prend en paramètre un concept et son expression conceptuelle équivalente da
 > - E : expression équivalente du concept C
 
 #### Part Test
-pareil que `pas-autoref`, on vérifie juste qu'il s'agit bien de la négation
+Pareil que `pas-autoref`, on vérifie juste qu'il s'agit bien de la négation.
 
 ### `applique_def`
 Le prédicat `applique_def` applique la définition d'un concept et d'autres définitions de la Tbox, jusqu'à ce qu'il n'y ait plus que des concepts atomiques.
 
 Il applique de manière récursive la définition du concept. De même, si l'expression du concept comporte des opérateurs, il applique `applique_def` de manière récursive sur tous les membres des opérateurs qui sont des concepts. De plus, on appelle `concept` pour toujours vérifier la correction syntaxique des expressions.
+
 Il prend en paramètre un concept et un résultat.
-applique_def(concept, res) :
-    - concept : concept dont on veut trouver l'expression équivalente avec uniquement des concepts atomiques
-    - res : expression équivalente de concept qu'on a trouvé
+> applique_def(concept, res) :
+> - concept : concept dont on veut trouver l'expression équivalente avec uniquement des concepts atomiques
+> - res : expression équivalente de concept qu'on a trouvé
 
 #### Part Test
 Ce prédicat est utilisé par le prédicat suivant `applique_def_Tbox`, il suffit donc de vérifier la fonctionnalité de ce dernier.
@@ -169,11 +170,12 @@ Ce prédicat est utilisé par le prédicat suivant `applique_def_Tbox`, il suffi
 Le prédicat `applique_def_Tbox` applique `applique_def` sur tous les concepts de la Tbox.
 
 On récupère les expressions de tous les concepts de la Tbox, et pour chacune, on récupère l'expression équivalente avec uniquement des concepts atomiques en appelant `applique_def`. On vérifie également pour chaque concept de la Tbox qu'il n'est pas auto-référent en appelant `pas-autoref`. Pour parcourir et appliquer ce traitement sur la liste, on effectue le traitement sur le premier élément de la liste, puis on fait l'appel récursif sur le reste de la liste, en mettant à jour les listes de résultats.
+
 Il prend en paramètres la liste des concepts de la Tbox, une liste partielle de résultats et une liste finale de résultats.
-applique_def_Tbox(L, ResPartiel, ResFinal) :
-    - L : liste des concepts (non atomiques) de la Tbox
-    - ResPartiel : liste des résultats à cet instant/appel récursif-là. Chaque élément est de la forme (C, E), où C est le concept, et E est son expression équivalente après traitement
-    - ResFinal : liste des résultats lorsqu'on a traité tous les concepts de la Tbox. Chaque élément est de la forme (C, E), où C est le concept, et E est son expression équivalente après traitement
+> applique_def_Tbox(L, ResPartiel, ResFinal) :
+> - L : liste des concepts (non atomiques) de la Tbox
+> - ResPartiel : liste des résultats à cet instant/appel récursif-là. Chaque élément est de la forme (C, E), où C est le concept, et E est son expression équivalente après traitement
+> - ResFinal : liste des résultats lorsqu'on a traité tous les concepts de la Tbox. Chaque élément est de la forme (C, E), où C est le concept, et E est son expression équivalente après traitement
 
 #### Résultat du part test :
 ```prolog
@@ -198,14 +200,14 @@ Rnnf = [(auteur, and(personne, some(aEcrit, livre))), (editeur, and(personne, an
 ```
 
 ### `traitement_Tbox`
-Le prédicat `traitement_Tbox` permet d'obtenir tous les axiomes de la Tbox sous la forme de couples (C, E), où C est un concept et E est son expression équivalente qui ne contient que des concepts atomiques et qui est sous forme normale négative.
+Le prédicat `traitement_Tbox` permet d'obtenir tous les axiomes de la Tbox sous la forme de couples $(C, E)$, où C est un concept et E est son expression équivalente qui ne contient que des concepts atomiques et qui est sous forme normale négative.
 
 Ce prédicat :
-    * récupère les concepts non atomiques des axiomes de la Tbox
-    * pour chaque concept, applique sa définition et d'autres jusqu'à n'avoir que des concepts atomiques
-    * met chaque expression sous forme normale négative 
-traitement_Tbox(Tbox) :
-    Tbox : liste des axiomes de la Tbox sous la forme de couples (C, E), où C est un concept et E est son expression équivalente qui ne contient que des concepts atomiques et qui est sous forme normale négative.
+* récupère les concepts non atomiques des axiomes de la Tbox
+* pour chaque concept, applique sa définition et d'autres jusqu'à n'avoir que des concepts atomiques
+* met chaque expression sous forme normale négative 
+> traitement_Tbox(Tbox) :
+> - Tbox : liste des axiomes de la Tbox sous la forme de couples (C, E), où C est un concept et E est son expression équivalente qui ne contient que des concepts atomiques et qui est sous forme normale négative.
 
 #### Résultat du part test :
 ```prolog
@@ -218,27 +220,28 @@ true.
 Le prédicat `applique_def_Abox` applique `applique_def` sur tous les concepts de la Abox.
 
 On récupère les expressions de toutes les instances de la Abox, et pour chacune, on récupère l'expression équivalente avec uniquement des concepts atomiques en appelant `applique_def`. Pour parcourir et appliquer ce traitement sur la liste, on effectue le traitement sur le premier élément de la liste, puis on fait l'appel récursif sur le reste de la liste, en mettant à jour les listes de résultats.
+
 Il prend en paramètres la liste des assertions de concept de la Abox, une liste partielle de résultats et une liste finale de résultats.
-applique_def_Abox(L, ResPartiel, ResFinal) :
-    - L : liste des assertions de concept de la Abox. Chaque élément est de la forme (I, C), où I est une instance et C est le concept
-    - ResPartiel : liste des résultats à cet instant/appel récursif-là. Chaque élément est de la forme (I, E), où I est une instance, et E est l'expression équivalente du concept C après traitement
-    - ResFinal : liste des résultats lorsqu'on a traité toutes les assertions de concept de la Abox. Chaque élément est de la forme (I, E), où I est une instance, et E est l'expression équivalente du concept C après traitement
+> applique_def_Abox(L, ResPartiel, ResFinal) :
+> - L : liste des assertions de concept de la Abox. Chaque élément est de la forme (I, C), où I est une instance et C est le concept
+> - ResPartiel : liste des résultats à cet instant/appel récursif-là. Chaque élément est de la forme (I, E), où I est une instance, et E est l'expression équivalente du concept C après traitement
+> - ResFinal : liste des résultats lorsqu'on a traité toutes les assertions de concept de la Abox. Chaque élément est de la forme (I, E), où I est une instance, et E est l'expression équivalente du concept C après traitement
 #### Part Test
 Ce prédicat est utilisé par le prédicat suivant `traitement_Abox`, il suffit donc de vérifier la fonctionnalité de ce dernier.
 
 ### `traitement_Abox`
-Le prédicat `traitement_Abox` permet d'obtenir toutes les assertions de concept de la Abox sous la forme de couples (I, E), où I est une instance et E est son expression équivalente à son concept qui ne contient que des concepts atomiques et qui est sous forme normale négative, et toutes les assertions de rôle de la Abox.
+Le prédicat `traitement_Abox` permet d'obtenir toutes les assertions de concept de la Abox sous la forme de couples $(I, E)$, où I est une instance et E est son expression équivalente à son concept qui ne contient que des concepts atomiques et qui est sous forme normale négative, et toutes les assertions de rôle de la Abox.
 
 Il traite la liste des assertions de concept Abi et la liste des assertions de rôle Abr de la façon suivante :
-    - Abi : liste contenant les assertions de concept
-        * récupère les assertions de concept sous la forme de couple (I, C)
-        * pour chaque concept, applique sa définition et d'autres jusqu'à n'avoir que des concepts atomiques
-        * met chaque expression sous forme normale négative
-    - Abr : liste contenant les assertions de rôles
-        * récupère les assertions de concept sous la forme de tuple (A, B, R) 
-traitement_Abox(Abi, Abr) :
-    - Abi : liste des assertions de concept de la Abox après traitement. Chaque élément est de la forme (I, E), où I est une instance, et E l'expression équivalente à son concept
-    - Abr : liste des assertions de rôle de la Abox. Chaque élément est de la forme (A, B, R), où A et B sont des instances, et R un rôle
+- Abi : liste contenant les assertions de concept
+  * récupère les assertions de concept sous la forme de couple $(I, C)$
+  * pour chaque concept, applique sa définition et d'autres jusqu'à n'avoir que des concepts atomiques
+  * met chaque expression sous forme normale négative
+- Abr : liste contenant les assertions de rôles
+  * récupère les assertions de concept sous la forme de tuple $(A, B, R)$ 
+> traitement_Abox(Abi, Abr) :
+> - Abi : liste des assertions de concept de la Abox après traitement. Chaque élément est de la forme (I, E), où I est une instance, et E l'expression équivalente à son concept
+> - Abr : liste des assertions de rôle de la Abox. Chaque élément est de la forme (A, B, R), où A et B sont des instances, et R un rôle
 
 #### Résultat du part test :
 ```prolog
