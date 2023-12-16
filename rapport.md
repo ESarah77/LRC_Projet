@@ -6,16 +6,17 @@ Projet de LRC : Ecriture en Prolog d’un démonstrateur basé sur l’algorithm
 ### `concept`
 Le prédicat `concept` permet de vérifier la correction syntaxique de toutes les expresssions d'entrée (Tbox, Abox et entrée de l'utilisateur).
 
-Pour implémenter ce prédicat, nous nous sommes basées sur la définition récursive du concept, décrite dans la section "Quelques rappels préliminaires/I. Logique de description ALC/3. Grammaire", qui dit qu'un concept est :
-    - soit un concept atomique (ou top ou bottom, qui sont définis comme concept atomique dans ce projet)
-    - soit une expression not(concept)
-    - soit une expression and(concept, concept)
-    - soit une expression or(concept, concept)
-    - soit une expression some(role, concept)
-    - ou soit une expression all(role, concept).
+Pour implémenter ce prédicat, nous nous sommes basées sur la définition récursive du concept, décrite dans la section _"Quelques rappels préliminaires/I. Logique de description ALC/3. Grammaire"_, qui dit qu'un concept est :
+- soit un concept atomique (ou top ou bottom, qui sont définis comme concept atomique dans ce projet)
+- soit une expression not(concept)
+- soit une expression and(concept, concept)
+- soit une expression or(concept, concept)
+- soit une expression some(role, concept)
+- ou soit une expression all(role, concept).
+
 Il prend donc en paramètre une expression, et renvoie true s'il s'agit bien d'un concept.
-concept(E):
-    * E : expression dont on veut savoir s'il s'agit bien d'un concept
+> concept(E):
+> - E : expression dont on veut savoir s'il s'agit bien d'un concept
 
 #### Tests réalisés et les explications :
 ```prolog
@@ -34,16 +35,16 @@ false.
 ### `pas-autoref`
 Le prédicat `pas-autoref` permet de vérifier si un concept n'est pas auto-référent. Ce prédicat sera notamment utilisé plus tard pour le traitement de la Tbox, qui vont vérifier pour toutes leurs axiomes, si elles sont auto-référentes.
 
+Pour une définition de concept de la Tbox de la forme $C ≡ E$ :
+- récursivement, on applique la définition E du concept C
+  * soit E est un concept atomique, d'après la définition, on sait que C est un concept non atomique, donc ils sont forcément différent, donc il n'y a pas d'autoréférence
+  * soit E est un concept non atomique, il faut vérifier qu'il ne s'agit pas de C, et s'ils sont bien différents, on continue la récursion de `pas-autoref` sur la définition du concept non atomique E
+  * soit E commence par un opérateur et on applique récursivement `pas-autoref` sur les concepts de cette opération (deux appels récursifs sur chacun des membres s'il s'agit d'un opérateur `and` ou `or`, un seul appel récursif sur le deuxième membre s'il s'agit d'un opérateur `some` ou `all`).
 
-Pour une définition de concept de la Tbox de la forme C ≡ E :
-    - récursivement, on applique la définition E du concept C
-        * soit E est un concept atomique, d'après la définition, on sait que C est un concept non atomique, donc ils sont forcément différent, donc il n'y a pas d'autoréférence
-        * soit E est un concept non atomique, il faut vérifier qu'il ne s'agit pas de C, et s'ils sont bien différents, on continue la récursion de `pas-autoref` sur la définition du concept non atomique E
-        * soit E commence par un opérateur et on applique récursivement `pas-autoref` sur les concepts de cette opération (deux appels récursifs sur chacun des membres s'il s'agit d'un opérateur `and` ou `or`, un seul appel récursif sur le deuxième membre s'il s'agit d'un opérateur `some` ou `all`).
 Il prend en paramètre un concept et son expression conceptuelle équivalente dans la Tbox, et renvoie true s'il n'est pas auto-référent.
-pas-autoref(C, E):
-    - C : concept
-    - E : expression équivalente du concept C
+> pas-autoref(C, E):
+> - C : concept
+> - E : expression équivalente du concept C
 
 #### Tests réalisés et les explications :
 - tests de toutes les définitions dans `equiv` du fichier ta.pl
@@ -144,9 +145,10 @@ Le prédicat `pas-autoref` permet de vérifier si un concept est auto-référent
 
 Il s'agit de la négation du prédicat `pas-autoref`.
 Il prend en paramètre un concept et son expression conceptuelle équivalente dans la Tbox, et renvoie true s'il est auto-référent.
-autoref(C, E):
-    - C : concept
-    - E : expression équivalente du concept C
+
+> autoref(C, E):
+> - C : concept
+> - E : expression équivalente du concept C
 
 #### Part Test
 pareil que `pas-autoref`, on vérifie juste qu'il s'agit bien de la négation
