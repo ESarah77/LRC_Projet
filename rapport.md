@@ -2,7 +2,7 @@
 Projet de LRC : Ecriture en Prolog d’un démonstrateur basé sur l’algorithme des tableaux pour la logique de description ALC
 
 ## Partie 1 : Etape préliminaire de vérification et de mise en forme de la Tbox et de la Abox
-
+Lorsque nous obtenons une base de connaissances, nous la traitons pour que TBox et ABox ne contiennent que des concepts atomiques. On définit les predicats suivants pour effectuer cette tache :
 ### `concept`
 Le prédicat `concept` permet de vérifier la correction syntaxique de toutes les expressions d'entrée (Tbox, Abox et entrée de l'utilisateur).
 
@@ -254,8 +254,13 @@ Abr = [(michelAnge, david, aCree), (michelAnge, sonnets, aEcrit), (vinci, jocond
 
 ### `premiere_etape`
 (Description du rôle de ce prédicat)
+On résume tous les prédicats écrits dans cette partie et arrive à finaliser la première étape de notre démonstrateur, qui est le traitement du Tbox et le traitement du Abox.
 
 (Explication de l'implémentation + Paramètres)
+> premiere_etape(Tbox, Abi, Abr)
+> - Tbox : 
+> - Abi :
+> - Abr :
 
 #### Résultat du part test :
 ```prolog
@@ -266,10 +271,22 @@ Abr = [(michelAnge, david, aCree), (michelAnge, sonnets, aEcrit), (vinci, jocond
 ```
 
 ## Partie II : Saisie de la proposition à démontrer 
+Une fois le traitement de la base de connaissances terminé, on traite la proposition à prouver entrée par l'utilisateur et fait également en sorte que la proposition ne contienne que des concepts atomiques. 
+### `deuxieme_etape`
+On commence par definir le prédicat final de cette partie, qui révèle notre objectifs. L'idée principale est d'écouter les entrées de l'utilisateur puis d'appeler le prédicat correspondant.
+
+
 ### `acquisition_prop_type1`
+acquisition_prop_type1:
+    * lecture de l'instance I
+    * lecture du concept/de l'expression C
+    * vérification du concept C
+    * application sur not(C), des axiomes de la Tbox traitée, jusqu'à n'avoir que des concepts atomiques
+    * mise sous forme normale négative 
+    * Abi1 = Abi + la nouvelle proposition
 
 #### Résultat du part test :
-Dans cette partie, on utilise une autre paire de Tbox et Abox pour tester nos prédicats. Les Tbox/Abox sont enregistrés dans le fichier "ex3td4.pl" et sont traduits par l'exo3 du TD4, donc le "eli et eon".
+Dans cette partie, on utilise une autre paire de Tbox et Abox pour tester nos prédicats. Les Tbox/Abox sont enregistrés dans le fichier "ex3td4.pl" et sont traduits de l'exo3 du TD4, donc le "eli et eon".
 
 ### `acquisition_prop_type2`
 
@@ -277,6 +294,7 @@ Dans cette partie, on utilise une autre paire de Tbox et Abox pour tester nos pr
 
 
 ## Partie III : Démonstration de la proposition
+Enfin, on ajoute la négation de la proposition fournite par l'utilisateur à la T+ABox pour en déduire la contradiction, prouvant ainsi l'établissement de la proposition.
 ### `tri_Abox`
 
 ### `resolution`
