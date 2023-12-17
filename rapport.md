@@ -4,7 +4,7 @@ Projet de LRC : Ecriture en Prolog d’un démonstrateur basé sur l’algorithm
 ## Partie 1 : Etape préliminaire de vérification et de mise en forme de la Tbox et de la Abox
 
 ### `concept`
-Le prédicat `concept` permet de vérifier la correction syntaxique de toutes les expresssions d'entrée (Tbox, Abox et entrée de l'utilisateur).
+Le prédicat `concept` permet de vérifier la correction syntaxique de toutes les expressions d'entrée (Tbox, Abox et entrée de l'utilisateur).
 
 Pour implémenter ce prédicat, nous nous sommes basées sur la définition récursive du concept, décrite dans la section _"Quelques rappels préliminaires/I. Logique de description ALC/3. Grammaire"_, qui dit qu'un concept est :
 - soit un concept atomique (ou top ou bottom, qui sont définis comme concept atomique dans ce projet)
@@ -35,7 +35,7 @@ false.
 ### `pas-autoref`
 Le prédicat `pas-autoref` permet de vérifier si un concept n'est pas auto-référent. Ce prédicat sera notamment utilisé plus tard pour le traitement de la Tbox, qui vont vérifier pour toutes leurs axiomes, si elles sont auto-référentes.
 
-Pour une définition de concept de la Tbox de la forme $C ≡ E$ :
+Pour une définition de concept de la Tbox de la forme C ≡ E :
 - récursivement, on applique la définition E du concept C
   * soit E est un concept atomique, d'après la définition, on sait que C est un concept non atomique, donc ils sont forcément différent, donc il n'y a pas d'autoréférence
   * soit E est un concept non atomique, il faut vérifier qu'il ne s'agit pas de C, et s'ils sont bien différents, on continue la récursion de `pas-autoref` sur la définition du concept non atomique E
@@ -182,16 +182,18 @@ Il prend en paramètres la liste des concepts de la Tbox, une liste partielle de
 % `applique_def_Tbox` sur tous les conceptions non atomiques :
 ?- applique_def_Tbox([auteur, editeur, parent, sculpteur],[],R).
 R = [(auteur, and(personne, some(aEcrit, livre))), (editeur, and(personne, and(not(some(aEcrit, livre)), some(aEdite, livre)))), (parent, and(personne, some(aEnfant, anything))), (sculpteur, and(personne, some(aCree, sculpture)))].
+% Ici, suite a la recursion, la liste de ResPartiel et de plus en plus grand.
+% A la fin, on passe la valeur de ResPartiel a la variable ResFinal.
 ```
 
 ### `applique_nnf`
 Le prédicat `applique_nnf` applique `nnf` sur toutes les expressions qui ont uniquement des concepts atomiques.
 
 Pour parcourir et appliquer ce traitement sur la liste, on appelle `nnf` sur la première expression de la liste, puis on fait l'appel récursif sur le reste de la liste, en mettant à jour les listes de résultats.
-applique_nnf(L, ResPartiel, ResFinal) :
-    - L : liste des axiomes de la Tbox, sous la forme (C, E), où C est le concept, et E est son expression équivalente avec uniquement des concepts atomiques 
-    - ResPartiel : liste des résultats à cet instant/appel récursif-là. Chaque élément est de la forme (C, E), où C est le concept, et E est son expression équivalente après traitement
-    - ResFinal : liste des résultats lorsqu'on a traité tous les concepts de la Tbox. Chaque élément est de la forme (C, E), où C est le concept, et E est son expression équivalente après traitement
+> applique_nnf(L, ResPartiel, ResFinal) :
+> - L : liste des axiomes de la Tbox, sous la forme (C, E), où C est le concept, et E est son expression équivalente avec uniquement des concepts atomiques 
+> - ResPartiel : liste des résultats à cet instant/appel récursif-là. Chaque élément est de la forme (C, E), où C est le concept, et E est son expression équivalente après traitement
+> - ResFinal : liste des résultats lorsqu'on a traité tous les concepts de la Tbox. Chaque élément est de la forme (C, E), où C est le concept, et E est son expression équivalente après traitement
 
 #### Résultat du part test :
 ```prolog
@@ -211,7 +213,7 @@ Ce prédicat :
 
 #### Résultat du part test :
 ```prolog
-% Vérification de fonctionnement du prédicat `traitement_Tbox` en utilisant le résultat de l'application de `applique_nnf`:
+% Vérification de fonctionnement du prédicat `traitement_Tbox` en utilisant le résultat de `applique_nnf`:
 ?- traitement_Tbox([(auteur, and(personne, some(aEcrit, livre))), (editeur, and(personne, and(all(aEcrit, not(livre)), some(aEdite, livre)))), (parent, and(personne, some(aEnfant, anything))), (sculpteur, and(personne, some(aCree, sculpture)))]).
 true.
 ```
@@ -230,7 +232,7 @@ Il prend en paramètres la liste des assertions de concept de la Abox, une liste
 Ce prédicat est utilisé par le prédicat suivant `traitement_Abox`, il suffit donc de vérifier la fonctionnalité de ce dernier.
 
 ### `traitement_Abox`
-Le prédicat `traitement_Abox` permet d'obtenir toutes les assertions de concept de la Abox sous la forme de couples $(I, E)$, où I est une instance et E est son expression équivalente à son concept qui ne contient que des concepts atomiques et qui est sous forme normale négative, et toutes les assertions de rôle de la Abox.
+Le prédicat `traitement_Abox` permet d'obtenir toutes les assertions de concept de la Abox sous la forme de couples (I, E), où I est une instance et E est son expression équivalente à son concept qui ne contient que des concepts atomiques et qui est sous forme normale négative, et toutes les assertions de rôle de la Abox.
 
 Il traite la liste des assertions de concept Abi et la liste des assertions de rôle Abr de la façon suivante :
 - Abi : liste contenant les assertions de concept
@@ -262,3 +264,41 @@ Tbox = [(auteur, and(personne, some(aEcrit, livre))), (editeur, and(personne, an
 Abi = [(david, sculpture), (joconde, objet), (michelAnge, personne), (sonnets, livre), (vinci, personne)],
 Abr = [(michelAnge, david, aCree), (michelAnge, sonnets, aEcrit), (vinci, joconde, aCree)].
 ```
+
+## Partie II : Saisie de la proposition à démontrer 
+### `acquisition_prop_type1`
+
+#### Résultat du part test :
+Dans cette partie, on utilise une autre paire de Tbox et Abox pour tester nos prédicats. Les Tbox/Abox sont enregistrés dans le fichier "ex3td4.pl" et sont traduits par l'exo3 du TD4, donc le "eli et eon".
+
+### `acquisition_prop_type2`
+
+### `deuxieme_etape`
+
+
+## Partie III : Démonstration de la proposition
+### `tri_Abox`
+
+### `resolution`
+
+### `complete_some`
+
+### `transformation_and`
+
+### `deduction_all`
+
+### `transformation_or`
+
+### `evolue`
+
+### `affiche_evolution_Abox`
+
+### `troisieme_etape`
+
+### `programme`
+
+## Résumé
+
+
+
+
