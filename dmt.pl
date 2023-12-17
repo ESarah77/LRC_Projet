@@ -300,12 +300,12 @@ transformation_and(Lie, Lpt, [(A, and(C, D)) | Li], Lu, Ls, Abr) :- evolue((A, C
 %     on enlève la règle a:all(R, C), et on teste s'il y a un clash
 deduction_all(Lie, [], Li, Lu, Ls, Abr) :- transformation_or(Lie, [], Li, Lu, Ls, Abr),!.
 % deduction_all(Lie, Lpt, Li, Lu, Ls, Abr) :- member((A, all(R, C)), Lpt), member((A, B, R), Abr), concat(Ls, [(B, C)], Ls1),
-%                                             enleve((A, all(R, C)), Lpt, Lpt1), test_clash(Lie, Lpt1, Li, Lu, Ls1, Abr),!.
+%                                             enleve((A, all(R, C)), Lpt, Lpt1), test_clash(Lie, Lpt1, Li, Lu, Ls1, Abr).
 deduction_all(Lie, Lpt, Li, Lu, Ls, Abr) :- member((A, all(R, C)), Lpt), member((A, B, R), Abr), 
                                             evolue((B, C), Lie, Lpt, Li, Lu, Ls, _, _, _, _, Ls1),
                                             enleve((A, all(R, C)), Lpt, Lpt1),
                                             affiche_evolution_Abox(Ls, Lie, Lpt, Li, Lu, Abr, Ls1, Lie, Lpt1, Li, Lu, Abr),
-                                            test_clash(Lie, Lpt1, Li, Lu, Ls1, Abr),!.
+                                            test_clash(Lie, Lpt1, Li, Lu, Ls1, Abr).
 
 
 % transformation_or :
