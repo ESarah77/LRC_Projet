@@ -334,7 +334,7 @@ evolue((A, not(C)), Lie, Lpt, Li, Lu, Ls, Lie, Lpt, Li, Lu, Ls1) :- concat(Ls, [
 
 affiche_lst_inst([]).
 affiche_lst_inst([(A, E) | L]) :- write(A), write(':'), affiche_expr(E), nl, affiche_lst_inst(L),!.
-affiche_lst_inst([A, B, R] | L) :- write(A), write(','), write(B), write(':'), write(R), nl, affiche_lst_inst(L),!.
+affiche_lst_inst([(A, B, R) | L]) :- write(A), write(','), write(B), write(':'), write(R), nl, affiche_lst_inst(L),!.
 
 affiche_expr(C) :- cnamea(C), write(C),!.
 affiche_expr(not(C)) :- cnamea(C), write('¬'), write(C),!.
