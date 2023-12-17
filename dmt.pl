@@ -259,3 +259,28 @@ tri_Abox([(I, not(C)) | Abi], Lie, Lpt, Li, Lu, Ls) :- cnamea(C), concat(LsParti
                                                        tri_Abox(Abi, Lie, Lpt, Li, Lu, LsPartiel),!.  
 tri_Abox([(I, C) | Abi], Lie, Lpt, Li, Lu, Ls) :- cnamea(C), concat(LsPartiel, [(I, C)], Ls), 
                                                   tri_Abox(Abi, Lie, Lpt, Li, Lu, LsPartiel),!.
+
+% test_clash :
+    % * a:C et a:not(C) dans Ls --> clash donc stop 
+    % * sinon, nouveau noeud de résolution (récursion)
+test_clash(Lie, Lpt, Li, Lu, Ls, Abr) :- member((A, C), Ls), member((A, not(C)), Ls),!.
+test_clash(Lie, Lpt, Li, Lu, Ls, Abr) :- resolution(Lie, Lpt, Li, Lu, Ls, Abr),!.
+
+% complete_some :
+    % * s'il n'y a pas d'assertion du type a:some(R,C), on traite les règles and
+    % * sinon, on génère b, on ajoute <a,b>:R dans Abr et b:C dans Ls, on enlève la règle a:some(R,C) de Lie, et on teste s'il y a un clash
+complete_some([], Lpt, Li, Lu, Ls, Abr) :- transformation_and([], Lpt, Li, Lu, Ls, Abr),!.
+complete_some([(A, some(R, C)) | Lie], Lpt, Li, Lu, Ls, Abr) :- genere(B), concat(Abr, [(A, B, R)], Abr1),
+                                                                concat(Ls, [(B, C)], Ls1), enleve((A, some(R, C)), Lie, Lie1),
+                                                                test_clash(Lie1, Lpt, Li, Lu, Ls1, Abr1),!.
+
+transformation_and(Lie, Lpt, [], Lu, Ls, Abr) :- deduction_all(Lie, Lpt, [], Lu, Ls, Abr),!.
+transformation_and(Lie, Lpt, [(A, and(C, D)) | Li], Lu, Ls, Abr) :- concat(Ls, [(A, C), (A, D)], Ls1),
+                                                                    enleve((A, and(C, D)), Li, Li1),
+                                                                    test_clash(Lie, Lpt, Li1, Lu, Ls1, Abr),!.
+
+
+deduction_all(Lie, [], Li, Lu, Ls, Abr) :- transformation_or(Lie, [], Li, Lu, Ls, Abr),!.
+deduction_all(Lie, Lpt, Li, Lu, Ls, Abr) :- member((A, all(R, C)), Lpt), member((A, B, R), Abr), concat(Ls, [(B, C)], Ls1),
+                                            enleve((A, all(R, C)), Lpt, Lpt1), test_clash(Lie, Lpt1, Li, Lu, Ls1, Abr),!.
+
