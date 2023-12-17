@@ -48,7 +48,8 @@ Il prend en paramètre un concept et son expression conceptuelle équivalente da
 
 #### Tests réalisés et les explications :
 - tests de toutes les définitions dans `equiv` du fichier ta.pl
-- on modifie ta.pl en définissant `sculpture` comme un concept non atomique et en ajoutant sa définition dans `equiv` (cf exemple de Tbox circulaire de l'énoncé) et aussi un nom de rôle `creePar`（seulement pour vérifier le fonctionnement du prédicat `autoref`.
+- on modifie ta.pl en définissant `sculpture` comme un concept non atomique et en ajoutant sa définition dans `equiv` (cf exemple de Tbox circulaire de l'énoncé) et aussi un nom de rôle `creePar`(seulement pour vérifier le fonctionnement du prédicat `autoref`).
+
 L'explication d'un processus d'exécution :
 ```prolog
 [trace]  ?- autoref(sculpteur,and(personne,some(aCree,sculpture))).
