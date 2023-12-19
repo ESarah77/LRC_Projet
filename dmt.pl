@@ -1,3 +1,5 @@
+% :- [ta].
+:-[ex3td4]. 
 %--------Utilitaires fournis-----------
 concat([],L1,L1).
 concat([X|Y],L1,[X|L2]) :- concat(Y,L1,L2).
@@ -6,7 +8,6 @@ enleve(X,[X|L],L) :-!.
 enleve(X,[Y|L],[Y|L2]) :- enleve(X,L,L2).
 
 compteur(1).
-
 genere(Nom) :-  compteur(V),nombre(V,L1),
                 concat([105,110,115,116],L1,L2),
                 V1 is V+1,
@@ -34,8 +35,8 @@ chiffre_car(6,'6').
 chiffre_car(7,'7').
 chiffre_car(8,'8').
 chiffre_car(9,'9').
-
-%--------------Requetes----------------
+%--------------Remarques----------------
+% Le fichier ta.pl :
 % Tbox original
 % [(sculpteur,and(personne,some(aCree,sculpture))),
 % (auteur,and(personne,some(aEcrit,livre))),
@@ -86,19 +87,16 @@ concept(or(C1, C2)) :- concept(C1), concept(C2),!.
 concept(some(R, C)) :- rname(R), concept(C),!.
 concept(all(R, C)) :- rname(R), concept(C),!.
 
-% ; pour "ou"
-
 % pas-autoref :
 % Pour une définition de concept de la Tbox de la forme C ≡ E, 
 % par récursion, on applique les définitions des concepts non atomiques jusqu'à que l'on ne peut plus
 % et on vérifie si ce n'est pas autoréférent 
 % (application de pas-autoref sur E si c'est un concept atomique ou non atomique, ou application de pas-autoref sur C1 et C2 si E = op(C1,C2))
 % Si on arrive à une expression sans opération (=seulement un concept), on arrive aux cas de base :
-    % * soit E est un concept atomique, d'après la définition, on sait que C est un concept non atomique, donc ils sont forcément différent, 
+    % * soit E est un concept atomique, d'après la définition(du predicate "equiv"), on sait que C est un concept non atomique, donc ils sont forcément différent, 
     % donc il n'y a pas d'autoréférence
     % * soit E est un concept non atomique, il faut vérifier qu'il ne s'agit pas de C, et si c'est le cas,
     % on continue la récursion de pas-autoref sur la définition du concept non atomique E
-% pas-autoref(_, C1) :- cnamea(C1),!.
 pas-autoref(C, C1) :- cnamea(C1), C \= C1,!.
 pas-autoref(C, C1) :- cnamena(C1), C \= C1, equiv(C1, E), pas-autoref(C, E),!.
 pas-autoref(C, not(E)) :- concept(E), pas-autoref(C, E),!.
@@ -123,11 +121,15 @@ applique_def(some(R, C), some(R, Res)) :- rname(R), concept(C), applique_def(C, 
 applique_def(all(R, C), all(R, Res)) :- rname(R), concept(C), applique_def(C, Res),!.
 
 % applique_def_Tbox(Lc, Lpartiel, Lfinal) : appel applique_def sur tous les concepts de Lc,
-% et ajoute le résultat courant dans la liste des résultats précédents
-applique_def_Tbox([], L, L).
+% et ajoute le résultat courant à la fin de la liste des résultats précédents
+% on enleve chaque itération un élément depuis cette liste, 
+applique_def_Tbox([], L, L). %finalement on enleve tous les elements et arrive a une liste vide
 applique_def_Tbox([C | L], ResPartiel, ResFinal) :- equiv(C, E), pas-autoref(C, E),!, 
                                                     applique_def(C, ERes), concat(ResPartiel, [(C, ERes)], Res), 
                                                     applique_def_Tbox(L, Res, ResFinal),!.
+% Ici, avec la recursion, la liste de ResPartiel et de plus en plus grande
+% Bien que dans l'unification qu'on a vue précédemment, les négatifs soient plus petits que le positif
+% A la fin, on passe la valeur de ResPartiel a la variable ResFinal.
 
 % Résultat du part test :
 % ?- applique_def_Tbox([auteur, editeur, parent, sculpteur],[],R).
@@ -157,6 +159,8 @@ traitement_Tbox(Tbox) :- setof(C, cnamena(C), L), applique_def_Tbox(L, [], Ldef)
 % Tbox = [(auteur, and(personne, some(aEcrit, livre))), (editeur, and(personne, and(all(aEcrit, not(livre)), some(aEdite, livre)))), (parent, and(personne, some(aEnfant, anything))), (sculpteur, and(personne, some(aCree, sculpture)))].
 
 
+% Deploiement de Tbox en utilisant le resultat de traitement_Tbox quand on utilise le premiere_etape
+% pour eviter de rappeller applique_def encore une fois
 applique_Tbox(C, _, C) :- cnamea(C),!.
 applique_Tbox(C, Tbox, E) :- cnamena(C), member((C,E), Tbox),!.
 applique_Tbox(not(C), Tbox, not(Res)) :- concept(C), applique_Tbox(C, Tbox, Res),!.
@@ -167,7 +171,6 @@ applique_Tbox(all(R, C), Tbox, all(R, Res)) :- rname(R), concept(C), applique_Tb
 
 % applique_def_Abox(Lic, Lpartiel, Lfinal) : appel applique_def sur tous les concepts C de la liste Lic,
 % où les éléments sont de la forme (I, C), et ajoute le résultat courant dans la liste des résultats précédents
-
 applique_def_Abox([], _, L, L).
 applique_def_Abox([(I, C) | L], Tbox, ResPartiel, ResFinal) :- applique_Tbox(C, Tbox, CRes), concat(ResPartiel, [(I, CRes)], Res),
                                                          applique_def_Abox(L, Tbox, Res, ResFinal),!.
@@ -196,8 +199,8 @@ premiere_etape(Tbox, Abi, Abr) :- traitement_Tbox(Tbox), traitement_Abox(Tbox, A
 % Abi = [(david, sculpture), (joconde, objet), (michelAnge, personne), (sonnets, livre), (vinci, personne)],
 % Abr = [(michelAnge, david, aCree), (michelAnge, sonnets, aEcrit), (vinci, joconde, aCree)].
 
-
 % Astuces:
+% ; pour "ou"
 % =/2
 % 'mia'= mia -> true
 % '2' = 2 -> false
@@ -205,23 +208,23 @@ premiere_etape(Tbox, Abi, Abr) :- traitement_Tbox(Tbox), traitement_Abox(Tbox, A
 
 %--------------Partie II----------------
 % acquisition_prop_type1:
-    % * lecture de l'instance I
-    % * lecture du concept/de l'expression C
-    % * vérification du concept C
-    % * application sur not(C), des axiomes de la Tbox traitée, jusqu'à n'avoir que des concepts atomiques
-    % * mise sous forme normale négative 
-    % * Abi1 = Abi + la nouvelle proposition
+%     * lecture de l'instance I
+%     * lecture du concept/de l'expression C
+%     * vérification du concept C
+%     * application sur not(C), des axiomes de la Tbox traitée, jusqu'à n'avoir que des concepts atomiques
+%     * mise sous forme normale négative 
+%     * Abi1 = Abi + la nouvelle proposition
 acquisition_prop_type1(Abi, Abi1, Tbox) :-
     nl, write('Veuillez entrer le nom de l''instance :'), nl, read(I),
     nl, write('Veuillez entrer le concept ou l''expression de cette instance :'), nl, read(C), concept(C),
     applique_Tbox(not(C), Tbox, E), nnf(E, Res), concat(Abi, [(I, Res)], Abi1),!.
 
 % acquisition_prop_type2:
-    % * lecture du premier concept C1, puis du deuxième concept C2 
-    % * vérification des concepts C1 et C2 
-    % * application sur not(and(C1, C2)), des axiomes de la Tbox traitée, jusqu'à n'avoir que des concepts atomiques 
-    % * mise sous forme normale négative 
-    % * Abi1 = Abi + la nouvelle proposition    
+%     * lecture du premier concept C1, puis du deuxième concept C2 
+%     * vérification des concepts C1 et C2 
+%     * application sur not(and(C1, C2)), des axiomes de la Tbox traitée, jusqu'à n'avoir que des concepts atomiques 
+%     * mise sous forme normale négative 
+%     * Abi1 = Abi + la nouvelle proposition    
 acquisition_prop_type2(Abi, Abi1, Tbox) :-
     nl, write('Veuillez entrer le premier concept ou expression de la proposition :'), nl, read(C1), concept(C1),
     nl, write('Veuillez entrer le deuxième concept ou expression de la proposition :'), nl, read(C2), concept(C2),
@@ -237,16 +240,20 @@ saisie_et_traitement_prop_a_demontrer(Abi,Abi1,Tbox) :-
 
 suite(1,Abi,Abi1,Tbox) :- acquisition_prop_type1(Abi,Abi1,Tbox),!.
 suite(2,Abi,Abi1,Tbox) :- acquisition_prop_type2(Abi,Abi1,Tbox),!.
+% si ni 1 ni 2 :
 suite(_,Abi,Abi1,Tbox) :- nl,write('Cette reponse est incorrecte.'),nl,
                           saisie_et_traitement_prop_a_demontrer(Abi,Abi1,Tbox).
+
+% Resultat :
+% Abi = [(eli, and(not(homme), all(amant, homme))), (eon, habilleEnFemme)],
+% Abi1 = [(eli, and(not(homme), all(amant, homme))), (eon, habilleEnFemme), (eon, or(not(homme), not(habilleEnFemme)))].
 
 %--------------Partie III----------------
 %Trouver les successeurs
 %individu(i).
 %individu(s(I)) :- individu(I)
 % res => i, s(i), s(s(i))...
-
-tri_Abox([], Lie, Lpt, Li, Lu, Ls).
+tri_Abox([], _, _, _, _, _).
 tri_Abox([(I, some(R, C)) | Abi], Lie, Lpt, Li, Lu, Ls) :- rname(R), concept(C), concat(LiePartiel, [(I, some(R, C))], Lie), 
                                                            tri_Abox(Abi, LiePartiel, Lpt, Li, Lu, Ls),!.
 tri_Abox([(I, all(R, C)) | Abi], Lie, Lpt, Li, Lu, Ls) :- rname(R), concept(C), concat(LptPartiel, [(I, all(R, C))], Lpt), 
@@ -260,26 +267,35 @@ tri_Abox([(I, not(C)) | Abi], Lie, Lpt, Li, Lu, Ls) :- cnamea(C), concat(LsParti
 tri_Abox([(I, C) | Abi], Lie, Lpt, Li, Lu, Ls) :- cnamea(C), concat(LsPartiel, [(I, C)], Ls), 
                                                   tri_Abox(Abi, Lie, Lpt, Li, Lu, LsPartiel),!.
 
+% Check.
+% Resultats :
+% Li = [(eli, and(not(homme), all(amant, homme)))],
+% Ls = [(eon, habilleEnFemme)].
+
+
+% L'arbre de demonstration :
+% le racine :
 resolution(Lie, Lpt, Li, Lu, Ls, Abr) :- complete_some(Lie, Lpt, Li, Lu, Ls, Abr),!.
 
 % test_clash :
-    % * a:C et a:not(C) dans Ls --> clash donc stop 
-    % * sinon, nouveau noeud de résolution (récursion)
-test_clash(_, _, _, _, Ls, _) :- member((A, C), Ls), member((A, not(C)), Ls), nl, write('Clash'), nl,!.
+%     * a:C et a:not(C) dans Ls --> clash donc stop 
+%     * sinon, nouveau noeud de résolution (récursion)
+% test_clash(_, _, _, _, Ls, _) :- member((A, C), Ls), member((A, not(C)), Ls), nl, write('Clash'), nl,!.
+test_clash(_, _, _, _, Ls, _) :- member((A, C), Ls), nnf(not(C),Cnnf), member((A, Cnnf), Ls), nl, write('Clash'), nl,!.
 test_clash(Lie, Lpt, Li, Lu, Ls, Abr) :- resolution(Lie, Lpt, Li, Lu, Ls, Abr), nl, write('Nouvelle résolution'), nl,!.
 
 % complete_some :
-    % * s'il n'y a pas d'assertion du type a:some(R, C), on traite les règles and
-    % * sinon, on génère b, on ajoute <a,b>:R dans Abr et b:C dans Ls, on enlève la règle a:some(R, C) de Lie, et on teste s'il y a un clash
+%     * s'il n'y a pas d'assertion du type a:some(R, C), on traite les règles and
+%     * sinon, on génère b, on ajoute <a,b>:R dans Abr et b:C dans Ls, on enlève la règle a:some(R, C) de Lie, et on teste s'il y a un clash
 complete_some([], Lpt, Li, Lu, Ls, Abr) :- transformation_and([], Lpt, Li, Lu, Ls, Abr),!.
 % complete_some([(A, some(R, C)) | Lie], Lpt, Li, Lu, Ls, Abr) :- genere(B), concat(Abr, [(A, B, R)], Abr1),
 %                                                                 concat(Ls, [(B, C)], Ls1), enleve((A, some(R, C)), Lie, Lie1),
 %                                                                 test_clash(Lie1, Lpt, Li, Lu, Ls1, Abr1),!.
 complete_some([(A, some(R, C)) | Lie], Lpt, Li, Lu, Ls, Abr) :- genere(B), concat(Abr, [(A, B, R)], Abr1),
-                                                                evolue((B, C), Lie, Lpt, Li, Lu, Ls, _, _, _, _, Ls1),
-                                                                enleve((A, some(R, C)), Lie, Lie1),
-                                                                affiche_evolution_Abox(Ls, [(A, some(R, C)) | Lie], Lpt, Li, Lu, Abr, Ls1, Lie1, Lpt, Li, Lu, Abr1),
-                                                                test_clash(Lie1, Lpt, Li, Lu, Ls1, Abr1),!.
+                                                                evolue((B, C), Lie, Lpt, Li, Lu, Ls, Lie1, Lpt1, Li1, Lu1, Ls1),
+                                                                % enleve((A, some(R, C)), Lie, Lie1),
+                                                                affiche_evolution_Abox(Ls, [(A, some(R, C)) | Lie], Lpt, Li, Lu, Abr, Ls1, Lie1, Lpt1, Li1, Lu1, Abr1),
+                                                                test_clash(Lie1, Lpt1, Li1, Lu1, Ls1, Abr1),!.
 
 % transformation_and :
 %     * s'il n'y a pas d'assertion du type a:and(C, D), on traite les règles all
@@ -288,11 +304,13 @@ transformation_and(Lie, Lpt, [], Lu, Ls, Abr) :- deduction_all(Lie, Lpt, [], Lu,
 % transformation_and(Lie, Lpt, [(A, and(C, D)) | Li], Lu, Ls, Abr) :- concat(Ls, [(A, C), (A, D)], Ls1),
 %                                                                     enleve((A, and(C, D)), Li, Li1),
 %                                                                     test_clash(Lie, Lpt, Li1, Lu, Ls1, Abr),!.
-transformation_and(Lie, Lpt, [(A, and(C, D)) | Li], Lu, Ls, Abr) :- evolue((A, C), Lie, Lpt, Li, Lu, Ls, _, _, _, _, Ls1),
-                                                                    evolue((A, D), Lie, Lpt, Li, Lu, Ls1, _, _, _, _, Ls2),
-                                                                    enleve((A, and(C, D)), Li, Li1),
-                                                                    affiche_evolution_Abox(Ls, Lie, Lpt, [(A, and(C, D)) | Li], Lu, Abr, Ls2, Lie, Lpt, Li1, Lu, Abr),
-                                                                    test_clash(Lie, Lpt, Li1, Lu, Ls2, Abr),!.
+transformation_and(Lie, Lpt, [(A, and(C, D)) | Li], Lu, Ls, Abr) :- evolue((A, C), Lie, Lpt, Li, Lu, Ls, Lie1, Lpt1, Li1, Lu1, Ls1),
+                                                                    evolue((A, D), Lie1, Lpt1, Li1, Lu1, Ls1, Lie2, Lpt2, Li2, Lu2, Ls2), %faut renouveler tous les vars
+                                                                    % enleve((A, and(C, D)), Li, Li1),
+                                                                    % affiche_evolution_Abox(Ls, Lie, Lpt, [(A, and(C, D)) | Li], Lu, Abr, Ls2, Lie, Lpt, Li1, Lu, Abr),
+                                                                    affiche_evolution_Abox(Ls, Lie, Lpt, [(A, and(C, D)) | Li], Lu, Abr, Ls2, Lie2, Lpt2, Li2, Lu2, Abr),
+                                                                    test_clash(Lie2, Lpt2, Li2, Lu2, Ls2, Abr),!.
+                                                                    % test_clash(Lie, Lpt, Li1, Lu, Ls2, Abr),!.
 
 % deduction_all :
 %     * s'il n'y a pas d'assertion du type a:all(R, C), on traite les règles or
@@ -302,11 +320,10 @@ deduction_all(Lie, [], Li, Lu, Ls, Abr) :- transformation_or(Lie, [], Li, Lu, Ls
 % deduction_all(Lie, Lpt, Li, Lu, Ls, Abr) :- member((A, all(R, C)), Lpt), member((A, B, R), Abr), concat(Ls, [(B, C)], Ls1),
 %                                             enleve((A, all(R, C)), Lpt, Lpt1), test_clash(Lie, Lpt1, Li, Lu, Ls1, Abr).
 deduction_all(Lie, Lpt, Li, Lu, Ls, Abr) :- member((A, all(R, C)), Lpt), member((A, B, R), Abr), 
-                                            evolue((B, C), Lie, Lpt, Li, Lu, Ls, _, _, _, _, Ls1),
-                                            enleve((A, all(R, C)), Lpt, Lpt1),
-                                            affiche_evolution_Abox(Ls, Lie, Lpt, Li, Lu, Abr, Ls1, Lie, Lpt1, Li, Lu, Abr),
-                                            test_clash(Lie, Lpt1, Li, Lu, Ls1, Abr).
-
+                                            evolue((B, C), Lie, Lpt, Li, Lu, Ls, Lie1, Lpt1, Li1, Lu1, Ls1),
+                                            enleve((A, all(R, C)), Lpt, Lpt2),
+                                            affiche_evolution_Abox(Ls, Lie, Lpt, Li, Lu, Abr, Ls1, Lie1, Lpt2, Li1, Lu1, Abr),
+                                            test_clash(Lie1, Lpt2, Li1, Lu1, Ls1, Abr).
 
 % transformation_or :
 %     * s'il n'y a pas d'assertion du type a:or(R, C) (et qu'il n'y a pas eu de clash depuis), il y a donc erreur de résolution
@@ -316,15 +333,20 @@ deduction_all(Lie, Lpt, Li, Lu, Ls, Abr) :- member((A, all(R, C)), Lpt), member(
 %                                                                   enleve((A, or(C, D)), Lu, Lu1),
 %                                                                   test_clash(Lie, Lpt, Li, Lu1, Ls1, Abr),
 %                                                                   test_clash(Lie, Lpt, Li, Lu1, Ls2, Abr),!.
-transformation_or(Lie, Lpt, Li, [(A, or(C, D)) | Lu], Ls, Abr) :- enleve((A, or(C, D)), Lu, Lu1),
-                                                                  evolue((A, C), Lie, Lpt, Li, Lu, Ls, _, _, _, _, Ls1),
-                                                                  affiche_evolution_Abox(Ls, Lie, Lpt, Li, [(A, or(C, D)) | Lu], Abr, Ls1, Lie, Lpt, Li, Lu1, Abr),
-                                                                  test_clash(Lie, Lpt, Li, Lu1, Ls1, Abr),
-                                                                  evolue((A, D), Lie, Lpt, Li, Lu, Ls, _, _, _, _, Ls2),
-                                                                  affiche_evolution_Abox(Ls, Lie, Lpt, Li, [(A, or(C, D)) | Lu], Abr, Ls2, Lie, Lpt, Li, Lu1, Abr),
-                                                                  test_clash(Lie, Lpt, Li, Lu1, Ls2, Abr),!.
+transformation_or(Lie, Lpt, Li, [(A, or(C, D)) | Lu], Ls, Abr) :- %enleve((A, or(C, D)), Lu, Lu1),
+                                                                  evolue((A, C), Lie, Lpt, Li, Lu, Ls, Lie1, Lpt1, Li1, Lu1, Ls1),
+                                                                %   affiche_evolution_Abox(Ls, Lie, Lpt, Li, [(A, or(C, D)) | Lu], Abr, Ls1, Lie, Lpt, Li, Lu1, Abr),
+                                                                  affiche_evolution_Abox(Ls, Lie, Lpt, Li, [(A, or(C, D)) | Lu], Abr, Ls1, Lie1, Lpt1, Li1, Lu1, Abr),
+                                                                %   test_clash(Lie, Lpt, Li, Lu1, Ls1, Abr),
+                                                                  test_clash(Lie1, Lpt1, Li1, Lu1, Ls1, Abr),
+                                                                  evolue((A, D), Lie, Lpt, Li, Lu, Ls, Lie2, Lpt2, Li2, Lu2, Ls2),
+                                                                %   affiche_evolution_Abox(Ls, Lie, Lpt, Li, [(A, or(C, D)) | Lu], Abr, Ls2, Lie, Lpt, Li, Lu1, Abr),
+                                                                  affiche_evolution_Abox(Ls, Lie, Lpt, Li, [(A, or(C, D)) | Lu], Abr, Ls2, Lie2, Lpt2, Li2, Lu2, Abr),
+                                                                %   test_clash(Lie, Lpt, Li, Lu1, Ls2, Abr),!.
+                                                                  test_clash(Lie2, Lpt2, Li2, Lu2, Ls2, Abr),!.
 
 
+% Mettre à jour les listes des différentes fonctions
 evolue((A, some(R, C)), Lie, Lpt, Li, Lu, Ls, Lie1, Lpt, Li, Lu, Ls) :- concat(Lie, [(A, some(R, C))], Lie1),!.
 evolue((A, and(C, D)), Lie, Lpt, Li, Lu, Ls, Lie, Lpt, Li1, Lu, Ls) :- concat(Li, [(A, and(C, D))], Li1),!.
 evolue((A, all(R, C)), Lie, Lpt, Li, Lu, Ls, Lie, Lpt1, Li, Lu, Ls) :- concat(Lpt, [(A, all(R, C))], Lpt1),!.
@@ -332,7 +354,7 @@ evolue((A, or(C, D)), Lie, Lpt, Li, Lu, Ls, Lie, Lpt, Li, Lu1, Ls) :- concat(Lu,
 evolue((A, C), Lie, Lpt, Li, Lu, Ls, Lie, Lpt, Li, Lu, Ls1) :- concat(Ls, [(A, C)], Ls1),!.
 evolue((A, not(C)), Lie, Lpt, Li, Lu, Ls, Lie, Lpt, Li, Lu, Ls1) :- concat(Ls, [(A, not(C))], Ls1),!.
 
-affiche_lst_inst([]).
+affiche_lst_inst([]).% :- nl.
 affiche_lst_inst([(A, E) | L]) :- write(A), write(':'), affiche_expr(E), nl, affiche_lst_inst(L),!.
 affiche_lst_inst([(A, B, R) | L]) :- write(A), write(','), write(B), write(':'), write(R), nl, affiche_lst_inst(L),!.
 
@@ -349,10 +371,9 @@ affiche_evolution_Abox(Ls1, Lie1, Lpt1, Li1, Lu1, Abr1, Ls2, Lie2, Lpt2, Li2, Lu
     nl, write('Nouvelle Abox'), nl, affiche_lst_inst(Ls2), affiche_lst_inst(Lie2), affiche_lst_inst(Lpt2), affiche_lst_inst(Li2), affiche_lst_inst(Lu2), affiche_lst_inst(Abr2),!.
 
 
-troisieme_etape(Abi,Abr) :- tri_Abox(Abi,Lie,Lpt,Li,Lu,Ls),
+troisieme_etape(Abi1,Abr) :- tri_Abox(Abi1,Lie,Lpt,Li,Lu,Ls),
                             resolution(Lie,Lpt,Li,Lu,Ls,Abr),
-                            nl,write('Youpiiiiii, on a demontre la
-                            proposition initiale !!!').
+                            nl,write('Youpiiiiii, on a demontre la proposition initiale !!!').
 
 
 %-----------------MAIN--------------------------
