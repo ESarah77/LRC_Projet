@@ -546,7 +546,7 @@ Youpiiiiii, on a demontre la proposition initiale !!!
 true.
 ```
 ## Conclusion
-
+Dans cet article, nous avons implémenté un démonstrateur via un programme Prolog, implémenté une série de prédicats basés sur les idées de récursion et d'unification, et effectué des tests pour vérifier la fonctionnement du démonstrateur.
 
 
 
