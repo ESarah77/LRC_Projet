@@ -234,7 +234,7 @@ Ce prédicat est utilisé par le prédicat suivant `traitement_Abox`, il suffit 
 
 
 ### applique_Tbox
-Deploiement de Tbox en utilisant le resultat de traitement_Tbox quand on utilise le prédicat `premiere_etape` pour eviter de rappeller applique_def encore une fois.
+Deploiement de Tbox en utilisant le resultat de `traitement_Tbox` quand on utilise le prédicat `premiere_etape` pour eviter de rappeller `applique_def` encore une fois.
 
 > ```prolog
 > % La forme de définition :
@@ -282,8 +282,8 @@ Abr = [(michelAnge, david, aCree), (michelAnge, sonnets, aEcrit), (vinci, jocond
 
 ## Partie II : Saisie de la proposition à démontrer 
 Une fois le traitement de la base de connaissances terminé, on traite la proposition à prouver entrée par l'utilisateur et fait également en sorte que la proposition ne contienne que des concepts atomiques. Nous considérons seulement deux types de propositions à prouver : 
-- prouver qu'une instance appartient à un certain concept(`i : C`)
-- ou qu'il n'y a pas d'intersection entre deux concepts(`C1 ⊓ C2 ⊑ ⊥ `).
+- prouver qu'une instance appartient à un certain concept(i : C)
+- ou qu'il n'y a pas d'intersection entre deux concepts(C1 ⊓ C2 ⊑ ⊥ ).
 
 Depuis cette partie, on utilise une autre paire de Tbox et Abox pour tester nos prédicats. Les Tbox/Abox sont enregistrés dans le fichier "ex3td4.pl" et sont traduits de l'exo3 du TD4, donc le "eli et eon".
 ### `deuxieme_etape`
