@@ -183,8 +183,8 @@ Il prend en paramètres la liste des concepts de la Tbox, une liste partielle de
 % `applique_def_Tbox` sur tous les conceptions non atomiques :
 ?- applique_def_Tbox([auteur, editeur, parent, sculpteur],[],R).
 R = [(auteur, and(personne, some(aEcrit, livre))), (editeur, and(personne, and(not(some(aEcrit, livre)), some(aEdite, livre)))), (parent, and(personne, some(aEnfant, anything))), (sculpteur, and(personne, some(aCree, sculpture)))].
-% Ici, suite a la recursion, la liste de ResPartiel et de plus en plus grand.
-% A la fin, on passe la valeur de ResPartiel a la variable ResFinal.
+% Ici, suite à la recursion, la liste de ResPartiel et de plus en plus grand.
+% À la fin, on passe la valeur de ResPartiel à la variable ResFinal.
 ```
 
 ### `applique_nnf`
@@ -232,18 +232,28 @@ Il prend en paramètres la liste des assertions de concept de la Abox, une liste
 #### Part Test
 Ce prédicat est utilisé par le prédicat suivant `traitement_Abox`, il suffit donc de vérifier la fonctionnalité de ce dernier.
 
+
+### applique_Tbox
+Deploiement de Tbox en utilisant le resultat de traitement_Tbox quand on utilise le prédicat `premiere_etape` pour eviter de rappeller applique_def encore une fois.
+
+> ```prolog
+> % La forme de définition :
+> applique_Tbox(prposition, Tbox, proposition_res).
+> ```
+
 ### `traitement_Abox`
 Le prédicat `traitement_Abox` permet d'obtenir toutes les assertions de concept de la Abox sous la forme de couples (I, E), où I est une instance et E est son expression équivalente à son concept qui ne contient que des concepts atomiques et qui est sous forme normale négative, et toutes les assertions de rôle de la Abox.
 
 Il traite la liste des assertions de concept Abi et la liste des assertions de rôle Abr de la façon suivante :
 - `Abi` : liste contenant les assertions de concept
-  * récupère les assertions de concept sous la forme de couple $(I, C)$
+  * récupère les assertions de concept sous la forme de couple (I, C)
   * pour chaque concept, applique sa définition et d'autres jusqu'à n'avoir que des concepts atomiques
   * met chaque expression sous forme normale négative
 - `Abr` : liste contenant les assertions de rôles
-  * récupère les assertions de concept sous la forme de tuple $(A, B, R)$ 
+  * récupère les assertions de concept sous la forme de tuple (A, B, R)
 
-> traitement_Abox(Abi, Abr) :
+> traitement_Abox(Tbox, Abi, Abr) :
+> - `Tbox` : liste de tuples (C, E), résultat de `traitement_Tbox`
 > - `Abi` : liste des assertions de concept de la Abox après traitement. Chaque élément est de la forme (I, E), où I est une instance, et E l'expression équivalente à son concept
 > - `Abr` : liste des assertions de rôle de la Abox. Chaque élément est de la forme (A, B, R), où A et B sont des instances, et R un rôle
 
@@ -281,7 +291,7 @@ On commence par definir le prédicat final de cette partie, qui révèle notre o
 
 > ```prolog
 > deuxieme_etape(Abi,Abi1,Tbox) :- saisie_et_traitement_prop_a_demontrer(Abi,Abi1,Tbox).
-> ``
+> ```
 > - Tbox : le résultat du prédicat `premiere_etape`
 > - Abi : liste de tuples (instance, concept), résultat du `premiere_etape`
 > - Abr : liste de tuples (instance1, instance2, rôle), résultat du `premiere_etape`
@@ -312,10 +322,8 @@ Lisez le premier type de proposition. Les étapes sont les suivantes :
 > nl, write('Veuillez entrer le concept ou l''expression de cette instance :'), nl, read(C), concept(C),
 > applique_Tbox(not(C), Tbox, E), nnf(E, Res), concat(Abi, [(I, Res)], Abi1),!.
 > ```
-#### Résultat du part test :
-testé en utilisant "ex3td4.pl" :
-
-
+#### Part test :
+Testé en utilisant "ex3td4.pl" ; voyez le test du prédicat `programme` dans la partie III.
 
 ### `acquisition_prop_type2`
 Lisez le deuxième type de proposition. Les étapes sont les suivantes : 
@@ -331,19 +339,17 @@ Lisez le deuxième type de proposition. Les étapes sont les suivantes :
 > nl, write('Veuillez entrer le deuxième concept ou expression de la proposition :'), nl, read(C2), concept(C2),
 > applique_Tbox(not(and(C1, C2)), Tbox, E), nnf(E, Res), genere(I), concat(Abi, [(I, Res)], Abi1),!.
 > ```
-#### Résultat du part test :
-
+#### Part test :
+On n'a pas testé ce prédicat.
 
 
 ## Partie III : Démonstration de la proposition
-Enfin, on ajoute la négation de la proposition fournite par l'utilisateur à la T+ABox pour en déduire la contradiction, prouvant ainsi l'établissement de la proposition.
+On ajoute la négation de la proposition fournite par l'utilisateur à la T+ABox pour en déduire la contradiction, prouvant ainsi l'établissement de la proposition. Enfin, nous utilisons le prédicat `programme` pour relier les trois étapes de preuve que nous avons implémentées pour former un démonstrateur utilisable. Pour le test de cette partie, voyez le test du prédicat `programme`.
 ### `tri_Abox`
 Trier les propositions dans l'ABox étendue et ajoutez-les à leurs listes de propositions respectives. 
 
-Étant donné une proposition, nous vérifions d'abord si la relation et/ou les concepts qu'elle contient sont conformes à la sémantique (sont dans notre base de connaissances), puis appelons le prédicat `concat` pour l'ajouter à une liste de propositions correspondante, puis effectuons la récursion suivante sous forme d'unification. 
-
-En termes d'implémentation du code, nous prenons la proposition en tête de la liste de propositions originale et la traitons, puis récurons sur le corps.
-> Nous utilisons un exemple pour illustrer la conception du prédicat `tri_Abox`. Supposons que nous souhaitions ajouter une proposition "and(C1,C2)" aux listes de proposition :
+Étant donné une proposition, nous vérifions d'abord si la relation et/ou les concepts qu'elle contient sont conformes à la sémantique (sont dans notre base de connaissances), puis appelons le prédicat `concat` pour l'ajouter à une liste de propositions correspondante, puis effectuons la récursion suivante sous forme d'unification. En termes d'implémentation du code, nous prenons la proposition en tête de la liste de propositions originale et la traitons, puis récurons sur le corps.
+> Nous utilisons un exemple pour illustrer la conception du prédicat `tri_Abox`. Supposons que nous souhaitions ajouter une proposition `and(C1,C2)` aux listes de proposition :
 >
 > ```prolog
 > tri_Abox([(I, and(C1, C2)) | Abi], Lie, Lpt, Li, Lu, Ls) :-
@@ -351,7 +357,6 @@ En termes d'implémentation du code, nous prenons la proposition en tête de la 
 > ```
 > - "Lie, Lpt, Li, Lu, Ls" : les listes originales contenant différents types de propositions
 > - "LiPartiel" : la liste qui change. Au cours de la récursion, cette liste s'agrandit de plus en plus, donc à la fin, notre condition d'arrêt : `tri_Abox([], _, _, _, _, _)`.
-
 
 ### `resolution`
 Le racine de l'arbre de démonstration.
@@ -381,6 +386,8 @@ La règle some.
 >                                                                 affiche_evolution_Abox(Ls, [(A, some(R, C)) | Lie], Lpt, Li, Lu, Abr, Ls1, Lie1, Lpt1, Li1, Lu1, Abr1),
 >                                                                test_clash(Lie1, Lpt1, Li1, Lu1, Ls1, Abr1),!.
 > ```
+#### Part test :
+On n'a pas testé ce prédicat.
 ### `transformation_and`
 La règle and.
 * s'il n'y a pas d'assertion du type `a:and(C, D)`, on traite les règles all
@@ -433,6 +440,11 @@ Si on souhaite ajouter une proposition d'un certain type aux listes de propositi
 ### `affiche_evolution_Abox`
 Imprimer l'Abox étendue avant la mise à jour et l'Abox étendue après la mise à jour.
 
+>```prolog
+> affiche_evolution_Abox(Ls1, Lie1, Lpt1, Li1, Lu1, Abr1, Ls2, Lie2, Lpt2, Li2, Lu2, Abr2) :-
+>    nl, write('Ancienne Abox'), nl, affiche_lst_inst(Ls1), affiche_lst_inst(Lie1), affiche_lst_inst(Lpt1), affiche_lst_inst(Li1), affiche_lst_inst(Lu1), affiche_lst_inst(Abr1),
+>    nl, write('Nouvelle Abox'), nl, affiche_lst_inst(Ls2), affiche_lst_inst(Lie2), affiche_lst_inst(Lpt2), affiche_lst_inst(Li2), affiche_lst_inst(Lu2), affiche_lst_inst(Abr2),!.
+>```
 ### `troisieme_etape`
 > ```prolog
 > troisieme_etape(Abi1,Abr) :- tri_Abox(Abi1,Lie,Lpt,Li,Lu,Ls),
@@ -441,9 +453,10 @@ Imprimer l'Abox étendue avant la mise à jour et l'Abox étendue après la mise
 > ```
 
 ### `programme`
-Entrée de notre programme de démonstrateur, appelant les trois prédicats premiere_etape, deuxieme_etape et troisieme_etape. Le prédicat suivant utilise le résultat du traitement renvoyé par le prédicat précédent.
+Entrée de notre programme de démonstrateur, appelant les trois prédicats `premiere_etape`, `deuxieme_etape` et `troisieme_etape`. 
 > ```prolog
 > programme :- premiere_etape(Tbox,Abi,Abr),
+>     % Le prédicat suivant utilise le résultat du traitement renvoyé par le prédicat précédent.
 >             deuxieme_etape(Abi,Abi1,Tbox),
 >             troisieme_etape(Abi1,Abr).
 > ```
