@@ -236,15 +236,16 @@ Ce prédicat est utilisé par le prédicat suivant `traitement_Abox`, il suffit 
 Le prédicat `traitement_Abox` permet d'obtenir toutes les assertions de concept de la Abox sous la forme de couples (I, E), où I est une instance et E est son expression équivalente à son concept qui ne contient que des concepts atomiques et qui est sous forme normale négative, et toutes les assertions de rôle de la Abox.
 
 Il traite la liste des assertions de concept Abi et la liste des assertions de rôle Abr de la façon suivante :
-- Abi : liste contenant les assertions de concept
+- `Abi` : liste contenant les assertions de concept
   * récupère les assertions de concept sous la forme de couple $(I, C)$
   * pour chaque concept, applique sa définition et d'autres jusqu'à n'avoir que des concepts atomiques
   * met chaque expression sous forme normale négative
-- Abr : liste contenant les assertions de rôles
+- `Abr` : liste contenant les assertions de rôles
   * récupère les assertions de concept sous la forme de tuple $(A, B, R)$ 
+
 > traitement_Abox(Abi, Abr) :
-> - Abi : liste des assertions de concept de la Abox après traitement. Chaque élément est de la forme (I, E), où I est une instance, et E l'expression équivalente à son concept
-> - Abr : liste des assertions de rôle de la Abox. Chaque élément est de la forme (A, B, R), où A et B sont des instances, et R un rôle
+> - `Abi` : liste des assertions de concept de la Abox après traitement. Chaque élément est de la forme (I, E), où I est une instance, et E l'expression équivalente à son concept
+> - `Abr` : liste des assertions de rôle de la Abox. Chaque élément est de la forme (A, B, R), où A et B sont des instances, et R un rôle
 
 #### Résultat du part test :
 ```prolog
@@ -254,14 +255,12 @@ Abr = [(michelAnge, david, aCree), (michelAnge, sonnets, aEcrit), (vinci, jocond
 ```
 
 ### `premiere_etape`
-(Description du rôle de ce prédicat)
 On résume tous les prédicats écrits dans cette partie et arrive à finaliser la première étape de notre démonstrateur, qui est le traitement du Tbox et le traitement du Abox.
 
-(Explication de l'implémentation + Paramètres)
 > premiere_etape(Tbox, Abi, Abr)
-> - Tbox : 
-> - Abi :
-> - Abr :
+> - `Tbox` : le résultat du prédicat `traitement_Tbox`
+> - `Abi` : tuples (instance, concept), résultat du `traitement_Abox`
+> - `Abr` : tuples (instance1, instance2, rôle), résultat du `traitement_Abox`
 
 #### Résultat du part test :
 ```prolog
@@ -272,51 +271,268 @@ Abr = [(michelAnge, david, aCree), (michelAnge, sonnets, aEcrit), (vinci, jocond
 ```
 
 ## Partie II : Saisie de la proposition à démontrer 
-Une fois le traitement de la base de connaissances terminé, on traite la proposition à prouver entrée par l'utilisateur et fait également en sorte que la proposition ne contienne que des concepts atomiques. 
+Une fois le traitement de la base de connaissances terminé, on traite la proposition à prouver entrée par l'utilisateur et fait également en sorte que la proposition ne contienne que des concepts atomiques. Nous considérons seulement deux types de propositions à prouver : 
+- prouver qu'une instance appartient à un certain concept(`i : C`)
+- ou qu'il n'y a pas d'intersection entre deux concepts(`C1 ⊓ C2 ⊑ ⊥ `).
+
+Depuis cette partie, on utilise une autre paire de Tbox et Abox pour tester nos prédicats. Les Tbox/Abox sont enregistrés dans le fichier "ex3td4.pl" et sont traduits de l'exo3 du TD4, donc le "eli et eon".
 ### `deuxieme_etape`
 On commence par definir le prédicat final de cette partie, qui révèle notre objectifs. L'idée principale est d'écouter les entrées de l'utilisateur puis d'appeler le prédicat correspondant.
 
+> ```prolog
+> deuxieme_etape(Abi,Abi1,Tbox) :- saisie_et_traitement_prop_a_demontrer(Abi,Abi1,Tbox).
+> ``
+> - Tbox : le résultat du prédicat `premiere_etape`
+> - Abi : liste de tuples (instance, concept), résultat du `premiere_etape`
+> - Abr : liste de tuples (instance1, instance2, rôle), résultat du `premiere_etape`
+#### Résultat du part test :
+```prolog
+% testé en utilisant "ex3td4.pl" et les résultat des requêtes précedentes :
+?- premiere_etape(Tbox,Abi,Abr).
+Tbox = [(attiranceExcHomme, all(amant, homme)), (femme, not(homme)), (femmeHetero, and(not(homme), all(amant, homme))), (travesti, and(homme, habilleEnFemme))],
+Abi = [(eli, and(not(homme), all(amant, homme))), (eon, habilleEnFemme)],
+Abr = [(eli, eon, amant)].
+
+?- deuxieme_etape([(eli, and(not(homme), all(amant, homme))), (eon, habilleEnFemme)],Abi1,[(attiranceExcHomme, all(amant, homme)), (femme, not(homme)), (femmeHetero, and(not(homme), all(amant, homme))), (travesti, and(homme, habilleEnFemme))]).
+Abi1 = [(eli, and(not(homme), all(amant, homme))), (eon, habilleEnFemme), (eon, or(not(homme), not(habilleEnFemme)))].
+```
 
 ### `acquisition_prop_type1`
-acquisition_prop_type1:
-    * lecture de l'instance I
-    * lecture du concept/de l'expression C
-    * vérification du concept C
-    * application sur not(C), des axiomes de la Tbox traitée, jusqu'à n'avoir que des concepts atomiques
-    * mise sous forme normale négative 
-    * Abi1 = Abi + la nouvelle proposition
-
+Lisez le premier type de proposition. Les étapes sont les suivantes : 
+* lecture de l'instance `I`
+* lecture du concept/de l'expression `C`
+* vérification du concept `C`
+* application sur `not(C)`, des axiomes de la Tbox traitée, jusqu'à n'avoir que des concepts atomiques
+* mise sous forme normale négative 
+* récuperer la liste de l'Abox étendue : `Abi1` = `Abi` + la nouvelle proposition
+<!-commentaire->
+> ```prolog
+> acquisition_prop_type1(Abi, Abi1, Tbox) :- 
+> nl, write('Veuillez entrer le nom de l''instance :'), nl, read(I),
+> nl, write('Veuillez entrer le concept ou l''expression de cette instance :'), nl, read(C), concept(C),
+> applique_Tbox(not(C), Tbox, E), nnf(E, Res), concat(Abi, [(I, Res)], Abi1),!.
+> ```
 #### Résultat du part test :
-Dans cette partie, on utilise une autre paire de Tbox et Abox pour tester nos prédicats. Les Tbox/Abox sont enregistrés dans le fichier "ex3td4.pl" et sont traduits de l'exo3 du TD4, donc le "eli et eon".
+testé en utilisant "ex3td4.pl" :
+
+
 
 ### `acquisition_prop_type2`
+Lisez le deuxième type de proposition. Les étapes sont les suivantes : 
+* lecture du premier concept `C1`, puis du deuxième concept `C2` 
+* vérification des concepts `C1` et `C2` 
+* application sur `not(and(C1, C2))`, des axiomes de la Tbox traitée, jusqu'à n'avoir que des concepts atomiques 
+* mise sous forme normale négative 
+* récuperer la liste de l'Abox étendue : `Abi1` = `Abi` + la nouvelle proposition
 
-### `deuxieme_etape`
+> ```prolog
+> acquisition_prop_type2(Abi, Abi1, Tbox) :-
+> nl, write('Veuillez entrer le premier concept ou expression de la proposition :'), nl, read(C1), concept(C1),
+> nl, write('Veuillez entrer le deuxième concept ou expression de la proposition :'), nl, read(C2), concept(C2),
+> applique_Tbox(not(and(C1, C2)), Tbox, E), nnf(E, Res), genere(I), concat(Abi, [(I, Res)], Abi1),!.
+> ```
+#### Résultat du part test :
+
 
 
 ## Partie III : Démonstration de la proposition
 Enfin, on ajoute la négation de la proposition fournite par l'utilisateur à la T+ABox pour en déduire la contradiction, prouvant ainsi l'établissement de la proposition.
 ### `tri_Abox`
+Trier les propositions dans l'ABox étendue et ajoutez-les à leurs listes de propositions respectives. 
+
+Étant donné une proposition, nous vérifions d'abord si la relation et/ou les concepts qu'elle contient sont conformes à la sémantique (sont dans notre base de connaissances), puis appelons le prédicat `concat` pour l'ajouter à une liste de propositions correspondante, puis effectuons la récursion suivante sous forme d'unification. 
+
+En termes d'implémentation du code, nous prenons la proposition en tête de la liste de propositions originale et la traitons, puis récurons sur le corps.
+> Nous utilisons un exemple pour illustrer la conception du prédicat `tri_Abox`. Supposons que nous souhaitions ajouter une proposition "and(C1,C2)" aux listes de proposition :
+>
+> ```prolog
+> tri_Abox([(I, and(C1, C2)) | Abi], Lie, Lpt, Li, Lu, Ls) :-
+>   concept(C1), concept(C2), concat(LiPartiel, [(I, and(C1, C2))], Li), tri_Abox(Abi, Lie, Lpt, LiPartiel, Lu, Ls), !.
+> ```
+> - "Lie, Lpt, Li, Lu, Ls" : les listes originales contenant différents types de propositions
+> - "LiPartiel" : la liste qui change. Au cours de la récursion, cette liste s'agrandit de plus en plus, donc à la fin, notre condition d'arrêt : `tri_Abox([], _, _, _, _, _)`.
+
 
 ### `resolution`
+Le racine de l'arbre de démonstration.
+> ```prolog
+> resolution(Lie, Lpt, Li, Lu, Ls, Abr) :- complete_some(Lie, Lpt, Li, Lu, Ls, Abr),!.
+> ```
+> On commence par appliquer la règle some.
+### `test_clash`
+Après avoir appliqué chaque règle, on détermine si un clash se produit.
 
+Comment déterminer un clash:
+* s'il contient à la fois `a:C` et `a:not(C)` dans Ls(la liste de concepts atomiques) -> clash donc stop 
+* sinon, on retourne au nœud racine(`resolution`).
+> ```prolog
+> test_clash(_, _, _, _, Ls, _) :- member((A, C), Ls), nnf(not(C),Cnnf), member((A, Cnnf), Ls), nl, write('Clash'), nl,!.
+> test_clash(Lie, Lpt, Li, Lu, Ls, Abr) :- resolution(Lie, Lpt, Li, Lu, Ls, Abr), nl, write('Nouvelle résolution'), nl,!.
+> ```
 ### `complete_some`
+La règle some.
+* s'il n'y a pas d'assertion du type `a:some(R, C)`, on traite les règles and
+* sinon, on génère b, on ajoute `<a,b>:R` dans Abr et `b:C` dans une liste correspondante, et on teste s'il y a un clash.
 
+> ```prolog
+> complete_some([], Lpt, Li, Lu, Ls, Abr) :- transformation_and([], Lpt, Li, Lu, Ls, Abr),!.
+> complete_some([(A, some(R, C)) | Lie], Lpt, Li, Lu, Ls, Abr) :- genere(B), concat(Abr, [(A, B, R)], Abr1),
+>                                                                 evolue((B, C), Lie, Lpt, Li, Lu, Ls, Lie1, Lpt1, Li1, Lu1, Ls1),
+>                                                                 affiche_evolution_Abox(Ls, [(A, some(R, C)) | Lie], Lpt, Li, Lu, Abr, Ls1, Lie1, Lpt1, Li1, Lu1, Abr1),
+>                                                                test_clash(Lie1, Lpt1, Li1, Lu1, Ls1, Abr1),!.
+> ```
 ### `transformation_and`
-
+La règle and.
+* s'il n'y a pas d'assertion du type `a:and(C, D)`, on traite les règles all
+* sinon, on ajoute `a:C` et `a:D` dans Ls, on teste s'il y a un clash, et on récure sur les restes règles dans la liste de propositions originale.
+> ```prolog
+> transformation_and(Lie, Lpt, [], Lu, Ls, Abr) :- deduction_all(Lie, Lpt, [], Lu, Ls, Abr),!.
+> transformation_and(Lie, Lpt, [(A, and(C, D)) | Li], Lu, Ls, Abr) :- evolue((A, C), Lie, Lpt, Li, Lu, Ls, Lie1, Lpt1, Li1, Lu1, Ls1),
+>                                                                    evolue((A, D), Lie1, Lpt1, Li1, Lu1, Ls1, Lie2, Lpt2, Li2, Lu2, Ls2),
+> % Le prédicat suivant utilise le résultat du traitement renvoyé par le prédicat précédent.
+>                                                                    affiche_evolution_Abox(Ls, Lie, Lpt, [(A, and(C, D)) | Li], Lu, Abr, Ls2, Lie2, Lpt2, Li2, Lu2, Abr),
+>                                                                    test_clash(Lie2, Lpt2, Li2, Lu2, Ls2, Abr),!.
+> ```
 ### `deduction_all`
-
+La règle all.
+* s'il n'y a pas d'assertion du type `a:all(R, C)`, on traite les règles or
+* sinon, on cherche tous les b tels que `a:all(R, C)` est dans Lpt et <a,b>:R est dans Abr, on ajoute `b:C` dans Ls, on enlève la règle `a:all(R, C)`, et on teste s'il y a un clash.
+> ```prolog
+> deduction_all(Lie, [], Li, Lu, Ls, Abr) :- transformation_or(Lie, [], Li, Lu, Ls, Abr),!.
+> deduction_all(Lie, Lpt, Li, Lu, Ls, Abr) :- member((A, all(R, C)), Lpt), member((A, B, R), Abr), 
+>                                            evolue((B, C), Lie, Lpt, Li, Lu, Ls, Lie1, Lpt1, Li1, Lu1, Ls1),
+>                                            enleve((A, all(R, C)), Lpt, Lpt2),
+>                                            affiche_evolution_Abox(Ls, Lie, Lpt, Li, Lu, Abr, Ls1, Lie1, Lpt2, Li1, Lu1, Abr),
+>                                            test_clash(Lie1, Lpt2, Li1, Lu1, Ls1, Abr).
+> ```
 ### `transformation_or`
-
+La règle or.
+* s'il n'y a pas d'assertion du type `a:or(C, D)` (et qu'il n'y a pas eu de clash depuis), il y a donc erreur de résolution
+* sinon, dans un noeud de résolution, on ajoute a:C dans Ls et on teste s'il y a un clash, et dans un autre noeud, on ajoute `a:D` et on teste s'il y a un clash. 
+> ```prolog
+> transformation_or(Lie, Lpt, Li, [(A, or(C, D)) | Lu], Ls, Abr) :- evolue((A, C), Lie, Lpt, Li, Lu, Ls, Lie1, Lpt1, Li1, Lu1, Ls1),
+>                                                                  affiche_evolution_Abox(Ls, Lie, Lpt, Li, [(A, or(C, D)) | Lu], Abr, Ls1, Lie1, Lpt1, Li1, Lu1, Abr),
+>                                                                  test_clash(Lie1, Lpt1, Li1, Lu1, Ls1, Abr),
+>                                                                  evolue((A, D), Lie, Lpt, Li, Lu, Ls, Lie2, Lpt2, Li2, Lu2, Ls2),
+>                                                                 affiche_evolution_Abox(Ls, Lie, Lpt, Li, [(A, or(C, D)) | Lu], Abr, Ls2, Lie2, Lpt2, Li2, Lu2, Abr),
+>                                                                 test_clash(Lie2, Lpt2, Li2, Lu2, Ls2, Abr),!.
+> ```
 ### `evolue`
+Mettre à jour les listes des différents types de propositions, divisés par les "fonctions" au-dedans de prédicat: some, all, and, or, not, "atomique". 
 
+Si on souhaite ajouter une proposition d'un certain type aux listes de proposition originales, on utilise le prédicat `concat` pour l'ajouter à la liste correspondante, puis transmet la liste mise à jour à une nouvelle variable.
+
+> Un exemple :
+> 
+> ```prolog
+> evolue((A, some(R, C)), Lie, Lpt, Li, Lu, Ls, Lie1, Lpt, Li, Lu, Ls) :- concat(Lie, [(A, some(R, C))], Lie1),!.
+> ```
+> - les premiers 5 parametres "Lie, Lpt, Li, Lu, Ls" : les listes originales contenant différents types de propositions
+> - "Lie1" : la liste qui change, donc on marque "1" pour indiquer l'intérêt
+> - les paramètres restes "Lpt, Li, Lu, Ls" : les listes qui n'ont pas changé dans cette mise à jour(mais peuvent changer dans les autres situations)
 ### `affiche_evolution_Abox`
+Imprimer l'Abox étendue avant la mise à jour et l'Abox étendue après la mise à jour.
 
 ### `troisieme_etape`
+> ```prolog
+> troisieme_etape(Abi1,Abr) :- tri_Abox(Abi1,Lie,Lpt,Li,Lu,Ls),
+>                            resolution(Lie,Lpt,Li,Lu,Ls,Abr),
+>                            nl,write('Youpiiiiii, on a demontre la proposition initiale !!!').
+> ```
 
 ### `programme`
+Entrée de notre programme de démonstrateur, appelant les trois prédicats premiere_etape, deuxieme_etape et troisieme_etape. Le prédicat suivant utilise le résultat du traitement renvoyé par le prédicat précédent.
+> ```prolog
+> programme :- premiere_etape(Tbox,Abi,Abr),
+>             deuxieme_etape(Abi,Abi1,Tbox),
+>             troisieme_etape(Abi1,Abr).
+> ```
+#### Résultat du part test :
+Un processus de preuve complet :
+```prolog
+?- programme.
 
-## Résumé
+Entrez le numero du type de proposition que vous voulez demontrer :
+1 Une instance donnee appartient a un concept donne.
+2 Deux concepts n"ont pas d"elements en commun(ils ont une intersection vide).
+|: 1.
+
+Veuillez entrer le nom de l'instance :
+|: eon.
+
+Veuillez entrer le concept ou l'expression de cette instance :
+|: travesti.
+
+% On applique la règle and :
+Ancienne Abox
+eon:habilleEnFemme
+eli:¬homme⊓∀amant.homme
+eon:¬homme⊔¬habilleEnFemme
+eli:eli,eon:amant
+
+Nouvelle Abox
+eon:habilleEnFemme
+eli:¬homme
+eli:∀amant.homme
+eon:¬homme⊔¬habilleEnFemme
+eli:eli,eon:amant
+
+% On applique la règle all :
+Ancienne Abox
+eon:habilleEnFemme
+eli:¬homme
+eli:∀amant.homme
+eon:¬homme⊔¬habilleEnFemme
+eli:eli,eon:amant
+
+Nouvelle Abox
+eon:habilleEnFemme
+eli:¬homme
+eon:homme
+eon:¬homme⊔¬habilleEnFemme
+eli:eli,eon:amant
+
+% On applique la règle or, maintenant il y a deux feuilles :
+Ancienne Abox
+eon:habilleEnFemme
+eli:¬homme
+eon:homme
+eon:¬homme⊔¬habilleEnFemme
+eli:eli,eon:amant
+
+Nouvelle Abox
+eon:habilleEnFemme
+eli:¬homme
+eon:homme
+eon:¬homme
+eli:eli,eon:amant
+
+Clash
+
+Ancienne Abox
+eon:habilleEnFemme
+eli:¬homme
+eon:homme
+eon:¬homme⊔¬habilleEnFemme
+eli:eli,eon:amant
+
+Nouvelle Abox
+eon:habilleEnFemme
+eli:¬homme
+eon:homme
+eon:¬habilleEnFemme
+eli:eli,eon:amant
+
+Clash
+
+Nouvelle résolution
+
+Nouvelle résolution
+
+Youpiiiiii, on a demontre la proposition initiale !!!
+true.
+```
+## Conclusion
 
 
 
