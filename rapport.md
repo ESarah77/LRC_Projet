@@ -364,6 +364,11 @@ Le racine de l'arbre de démonstration.
 > resolution(Lie, Lpt, Li, Lu, Ls, Abr) :- complete_some(Lie, Lpt, Li, Lu, Ls, Abr),!.
 > ```
 > On commence par appliquer la règle some.
+
+On peut également remarquer qu'il est possible que la proposition à démontrer n'ajoute aucune instance de concept qui utilise les règles some, and, all ou or. Dans ce cas, il suffit de vérifier une seule fois la présence d'un clash, pour déterminer si le démonstrateur peut démontrer la proposition d'entrée ou non.
+> ```prolog
+> resolution([], [], [], [], Ls, Abr) :- test_clash([], [], [], [], Ls, Abr),!.
+> ```
 ### `test_clash`
 Après avoir appliqué chaque règle, on détermine si un clash se produit.
 
