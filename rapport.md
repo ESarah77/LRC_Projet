@@ -365,7 +365,7 @@ Le racine de l'arbre de démonstration.
 > ```
 > On commence par appliquer la règle some.
 
-On peut également remarquer qu'il est possible que la proposition à démontrer n'ajoute aucune instance de concept qui utilise les règles some, and, all ou or. Dans ce cas, il suffit de vérifier une seule fois la présence d'un clash, pour déterminer si le démonstrateur peut démontrer la proposition d'entrée ou non.
+On peut également remarquer qu'il est possible que la proposition à démontrer n'ajoute aucune instance de concept qui utilise les règles `some`, `and`, `all` ou `or`. Dans ce cas, il suffit de vérifier une seule fois la présence d'un clash, pour déterminer si le démonstrateur peut démontrer la proposition d'entrée ou non.
 > ```prolog
 > resolution([], [], [], [], Ls, Abr) :- test_clash([], [], [], [], Ls, Abr),!.
 > ```
@@ -377,8 +377,12 @@ Comment déterminer un clash:
 * sinon, on retourne au nœud racine(`resolution`).
 > ```prolog
 > test_clash(_, _, _, _, Ls, _) :- member((A, C), Ls), nnf(not(C),Cnnf), member((A, Cnnf), Ls), nl, write('Clash'), nl,!.
-> test_clash(Lie, Lpt, Li, Lu, Ls, Abr) :- resolution(Lie, Lpt, Li, Lu, Ls, Abr), nl, write('Nouvelle résolution'), nl,!.
+> test_clash(Lie, Lpt, Li, Lu, Ls, Abr) :- length(Lie, N), N > 0, nl, write('Nouvelle résolution'), nl, resolution(Lie, Lpt, Li, Lu, Ls, Abr),!.
+> test_clash(Lie, Lpt, Li, Lu, Ls, Abr) :- length(Lpt, N), N > 0, nl, write('Nouvelle résolution'), nl, resolution(Lie, Lpt, Li, Lu, Ls, Abr),!.
+> test_clash(Lie, Lpt, Li, Lu, Ls, Abr) :- length(Li, N), N > 0, nl, write('Nouvelle résolution'), nl, resolution(Lie, Lpt, Li, Lu, Ls, Abr),!.
+> test_clash(Lie, Lpt, Li, Lu, Ls, Abr) :- length(Lu, N), N > 0, nl, write('Nouvelle résolution'), nl, resolution(Lie, Lpt, Li, Lu, Ls, Abr),!.
 > ```
+> On doit vérifier qu'au moins une des listes qui contient des instances de concept utilisant les opérateurs `some`, `and`, `all` ou `or`, ne soit pas vide, car si elles le sont toutes, il ne faut pas créer une nouveau noeud de résolution, mais plutôt l'arrêter.
 ### `complete_some`
 La règle some.
 * s'il n'y a pas d'assertion du type `a:some(R, C)`, on traite les règles and
