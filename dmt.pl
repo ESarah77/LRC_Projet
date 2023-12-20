@@ -1,3 +1,4 @@
+% Auteurs : Sarah ENG, Lin ZHENGQING
 % :- [ta].
 :-[ex3td4]. 
 %--------Utilitaires fournis-----------
