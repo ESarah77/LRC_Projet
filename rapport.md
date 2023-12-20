@@ -481,14 +481,14 @@ Ancienne Abox
 eon:habilleEnFemme
 eli:¬homme⊓∀amant.homme
 eon:¬homme⊔¬habilleEnFemme
-eli:eli,eon:amant
+eli,eon:amant
 
 Nouvelle Abox
 eon:habilleEnFemme
 eli:¬homme
 eli:∀amant.homme
 eon:¬homme⊔¬habilleEnFemme
-eli:eli,eon:amant
+eli,eon:amant
 
 % On applique la règle all :
 Ancienne Abox
@@ -496,14 +496,14 @@ eon:habilleEnFemme
 eli:¬homme
 eli:∀amant.homme
 eon:¬homme⊔¬habilleEnFemme
-eli:eli,eon:amant
+eli,eon:amant
 
 Nouvelle Abox
 eon:habilleEnFemme
 eli:¬homme
 eon:homme
 eon:¬homme⊔¬habilleEnFemme
-eli:eli,eon:amant
+eli,eon:amant
 
 % On applique la règle or, maintenant il y a deux feuilles :
 Ancienne Abox
@@ -511,14 +511,14 @@ eon:habilleEnFemme
 eli:¬homme
 eon:homme
 eon:¬homme⊔¬habilleEnFemme
-eli:eli,eon:amant
+eli,eon:amant
 
 Nouvelle Abox
 eon:habilleEnFemme
 eli:¬homme
 eon:homme
 eon:¬homme
-eli:eli,eon:amant
+eli,eon:amant
 
 Clash
 
@@ -527,20 +527,16 @@ eon:habilleEnFemme
 eli:¬homme
 eon:homme
 eon:¬homme⊔¬habilleEnFemme
-eli:eli,eon:amant
+eli,eon:amant
 
 Nouvelle Abox
 eon:habilleEnFemme
 eli:¬homme
 eon:homme
 eon:¬habilleEnFemme
-eli:eli,eon:amant
+eli,eon:amant
 
 Clash
-
-Nouvelle résolution
-
-Nouvelle résolution
 
 Youpiiiiii, on a demontre la proposition initiale !!!
 true.
