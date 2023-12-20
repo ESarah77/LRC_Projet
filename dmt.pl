@@ -15,7 +15,7 @@ genere(Nom) :-  compteur(V),nombre(V,L1),
                 retract(compteur(V)),
                 dynamic(compteur/1),
                 assert(compteur(V1)),nl,nl,nl,
-                name(Nom,L2).
+                name(Nom,L2),!.
 
 nombre(0,[]).
 nombre(X,L1) :- R is (X mod 10),
@@ -267,20 +267,21 @@ suite(_,Abi,Abi1,Tbox) :- nl,write('Cette reponse est incorrecte.'),nl,
 % tri_Abox([(I, C) | Abi], Lie, Lpt, Li, Lu, Ls) :- cnamea(C), concat(LsPartiel, [(I, C)], Ls), 
 %                                                   tri_Abox(Abi, Lie, Lpt, Li, Lu, LsPartiel),!.
 
-tri_Abox(Abi, _, _, _, _, _) :- tri_Abox_rec(Abi, [], [], [], [], []),!.
+tri_Abox(Abi, Lie, Lpt, Li, Lu, Ls) :- tri_Abox_rec(Abi, [], [], [], [], [], Lie, Lpt, Li, Lu, Ls),!.
 
-tri_Abox_rec([(I, some(R, C)) | Abi], Lie, Lpt, Li, Lu, Ls) :- rname(R), concept(C), concat(LiePartiel, [(I, some(R, C))], Lie), 
-                                                           tri_Abox(Abi, LiePartiel, Lpt, Li, Lu, Ls),!.
-tri_Abox_rec([(I, all(R, C)) | Abi], Lie, Lpt, Li, Lu, Ls) :- rname(R), concept(C), concat(LptPartiel, [(I, all(R, C))], Lpt), 
-                                                          tri_Abox(Abi, Lie, LptPartiel, Li, Lu, Ls),!.
-tri_Abox_rec([(I, and(C1, C2)) | Abi], Lie, Lpt, Li, Lu, Ls) :- concept(C1), concept(C2), concat(LiPartiel, [(I, and(C1, C2))], Li), 
-                                                            tri_Abox(Abi, Lie, Lpt, LiPartiel, Lu, Ls),!.                                                       
-tri_Abox_rec([(I, or(C1, C2)) | Abi], Lie, Lpt, Li, Lu, Ls) :- concept(C1), concept(C2), concat(LuPartiel, [(I, or(C1, C2))], Lu), 
-                                                           tri_Abox(Abi, Lie, Lpt, Li, LuPartiel, Ls),!.  
-tri_Abox_rec([(I, not(C)) | Abi], Lie, Lpt, Li, Lu, Ls) :- cnamea(C), concat(LsPartiel, [(I, not(C))], Ls), 
-                                                       tri_Abox(Abi, Lie, Lpt, Li, Lu, LsPartiel),!.  
-tri_Abox_rec([(I, C) | Abi], Lie, Lpt, Li, Lu, Ls) :- cnamea(C), concat(LsPartiel, [(I, C)], Ls), 
-                                                  tri_Abox(Abi, Lie, Lpt, Li, Lu, LsPartiel),!.
+tri_Abox_rec([], Lie, Lpt, Li, Lu, Ls, Lie, Lpt, Li, Lu, Ls).
+tri_Abox_rec([(I, some(R, C)) | Abi], Lie1, Lpt1, Li1, Lu1, Ls1, Lie2, Lpt2, Li2, Lu2, Ls2) :- rname(R), concept(C), concat(Lie1, [(I, some(R, C))], LiePartiel), 
+                                                           tri_Abox_rec(Abi, LiePartiel, Lpt1, Li1, Lu1, Ls1, Lie2, Lpt2, Li2, Lu2, Ls2),!.
+tri_Abox_rec([(I, all(R, C)) | Abi], Lie1, Lpt1, Li1, Lu1, Ls1, Lie2, Lpt2, Li2, Lu2, Ls2) :- rname(R), concept(C), concat(Lpt1, [(I, all(R, C))], LptPartiel), 
+                                                          tri_Abox_rec(Abi, Lie1, LptPartiel, Li1, Lu1, Ls1, Lie2, Lpt2, Li2, Lu2, Ls2),!.
+tri_Abox_rec([(I, and(C1, C2)) | Abi], Lie1, Lpt1, Li1, Lu1, Ls1, Lie2, Lpt2, Li2, Lu2, Ls2) :- concept(C1), concept(C2), concat(Li1, [(I, and(C1, C2))], LiPartiel), 
+                                                            tri_Abox_rec(Abi, Lie1, Lpt1, LiPartiel, Lu1, Ls1, Lie2, Lpt2, Li2, Lu2, Ls2),!.                                                   
+tri_Abox_rec([(I, or(C1, C2)) | Abi], Lie1, Lpt1, Li1, Lu1, Ls1, Lie2, Lpt2, Li2, Lu2, Ls2) :- concept(C1), concept(C2), concat(Lu1, [(I, or(C1, C2))], LuPartiel), 
+                                                           tri_Abox_rec(Abi, Lie1, Lpt1, Li1, LuPartiel, Ls1, Lie2, Lpt2, Li2, Lu2, Ls2),!.
+tri_Abox_rec([(I, not(C)) | Abi], Lie1, Lpt1, Li1, Lu1, Ls1, Lie2, Lpt2, Li2, Lu2, Ls2) :- cnamea(C), concat(Ls1, [(I, not(C))], LsPartiel), 
+                                                       tri_Abox_rec(Abi, Lie1, Lpt1, Li1, Lu1, LsPartiel, Lie2, Lpt2, Li2, Lu2, Ls2),!.
+tri_Abox_rec([(I, C) | Abi], Lie1, Lpt1, Li1, Lu1, Ls1, Lie2, Lpt2, Li2, Lu2, Ls2) :- cnamea(C), concat(Ls1, [(I, C)], LsPartiel), 
+                                                  tri_Abox_rec(Abi, Lie1, Lpt1, Li1, Lu1, LsPartiel, Lie2, Lpt2, Li2, Lu2, Ls2),!.
 
 % Check.
 % Resultats :
@@ -291,14 +292,20 @@ tri_Abox_rec([(I, C) | Abi], Lie, Lpt, Li, Lu, Ls) :- cnamea(C), concat(LsPartie
 % L'arbre de demonstration :
 % le racine :
 resolution(Lie, Lpt, Li, Lu, Ls, Abr) :- complete_some(Lie, Lpt, Li, Lu, Ls, Abr),!.
+% cas où la proposition à démontrer n'a pas ajouté de règle some,and,all ou or
+resolution([], [], [], [], Ls, Abr) :- test_clash([], [], [], [], Ls, Abr),!.
 
 % test_clash :
 %     * a:C et a:not(C) dans Ls --> clash donc stop 
 %     * sinon, nouveau noeud de résolution (récursion)
 % test_clash(_, _, _, _, Ls, _) :- member((A, C), Ls), member((A, not(C)), Ls), nl, write('Clash'), nl,!.
 test_clash(_, _, _, _, Ls, _) :- member((A, C), Ls), nnf(not(C),Cnnf), member((A, Cnnf), Ls), nl, write('Clash'), nl,!.
-test_clash(Lie, Lpt, Li, Lu, Ls, Abr) :- resolution(Lie, Lpt, Li, Lu, Ls, Abr), nl, write('Nouvelle résolution'), nl,!.
+test_clash(Lie, Lpt, Li, Lu, Ls, Abr) :- length(Lie, N), N > 0, nl, write('Nouvelle résolution'), nl, resolution(Lie, Lpt, Li, Lu, Ls, Abr), !.
+test_clash(Lie, Lpt, Li, Lu, Ls, Abr) :- length(Lpt, N), N > 0, nl, write('Nouvelle résolution'), nl, resolution(Lie, Lpt, Li, Lu, Ls, Abr),!.
+test_clash(Lie, Lpt, Li, Lu, Ls, Abr) :- length(Li, N), N > 0, nl, write('Nouvelle résolution'), nl, resolution(Lie, Lpt, Li, Lu, Ls, Abr),!.
+test_clash(Lie, Lpt, Li, Lu, Ls, Abr) :- length(Lu, N), N > 0, nl, write('Nouvelle résolution'), nl, resolution(Lie, Lpt, Li, Lu, Ls, Abr),!.
 
+% sinon, test_clash([], [], [], [], Ls, Abr) où il n'y a pas de clash --> échec de la résolution
 % complete_some :
 %     * s'il n'y a pas d'assertion du type a:some(R, C), on traite les règles and
 %     * sinon, on génère b, on ajoute <a,b>:R dans Abr et b:C dans Ls, on enlève la règle a:some(R, C) de Lie, et on teste s'il y a un clash
@@ -335,7 +342,7 @@ deduction_all(Lie, [], Li, Lu, Ls, Abr) :- transformation_or(Lie, [], Li, Lu, Ls
 % deduction_all(Lie, Lpt, Li, Lu, Ls, Abr) :- member((A, all(R, C)), Lpt), member((A, B, R), Abr), concat(Ls, [(B, C)], Ls1),
 %                                             enleve((A, all(R, C)), Lpt, Lpt1), test_clash(Lie, Lpt1, Li, Lu, Ls1, Abr).
 deduction_all(Lie, Lpt, Li, Lu, Ls, Abr) :- member((A, all(R, C)), Lpt), member((A, B, R), Abr), 
-                                            evolue((B, C), Lie, Lpt, Li, Lu, Ls, Lie1, Lpt1, Li1, Lu1, Ls1),
+                                            evolue((B, C), Lie, Lpt, Li, Lu, Ls, Lie1, Lpt, Li1, Lu1, Ls1),
                                             enleve((A, all(R, C)), Lpt, Lpt2),
                                             affiche_evolution_Abox(Ls, Lie, Lpt, Li, Lu, Abr, Ls1, Lie1, Lpt2, Li1, Lu1, Abr),
                                             test_clash(Lie1, Lpt2, Li1, Lu1, Ls1, Abr).
@@ -370,11 +377,11 @@ evolue((A, C), Lie, Lpt, Li, Lu, Ls, Lie, Lpt, Li, Lu, Ls1) :- concat(Ls, [(A, C
 evolue((A, not(C)), Lie, Lpt, Li, Lu, Ls, Lie, Lpt, Li, Lu, Ls1) :- concat(Ls, [(A, not(C))], Ls1),!.
 
 affiche_lst_inst([]).% :- nl.
-affiche_lst_inst([(A, E) | L]) :- write(A), write(':'), affiche_expr(E), nl, affiche_lst_inst(L),!.
 affiche_lst_inst([(A, B, R) | L]) :- write(A), write(','), write(B), write(':'), write(R), nl, affiche_lst_inst(L),!.
+affiche_lst_inst([(A, E) | L]) :- write(A), write(':'), affiche_expr(E), nl, affiche_lst_inst(L),!.
 
 affiche_expr(C) :- cnamea(C), write(C),!.
-affiche_expr(not(C)) :- cnamea(C), write('¬'), write(C),!.
+affiche_expr(not(C)) :- write('¬'), affiche_expr(C),!.
 affiche_expr(some(R, C)) :- write('∃'), write(R), write('.'), affiche_expr(C),!.
 affiche_expr(all(R, C)) :- write('∀'), write(R), write('.'), affiche_expr(C),!.
 affiche_expr(and(C, D)) :- affiche_expr(C), write('⊓'), affiche_expr(D),!.
