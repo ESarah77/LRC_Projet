@@ -348,15 +348,19 @@ On ajoute la négation de la proposition fournite par l'utilisateur à la T+ABox
 ### `tri_Abox`
 Trier les propositions dans l'ABox étendue et ajoutez-les à leurs listes de propositions respectives. 
 
-Étant donné une proposition, nous vérifions d'abord si la relation et/ou les concepts qu'elle contient sont conformes à la sémantique (sont dans notre base de connaissances), puis appelons le prédicat `concat` pour l'ajouter à une liste de propositions correspondante, puis effectuons la récursion suivante sous forme d'unification. En termes d'implémentation du code, nous prenons la proposition en tête de la liste de propositions originale et la traitons, puis récurons sur le corps.
+Étant donné une proposition, nous vérifions d'abord si la relation et/ou les concepts qu'elle contient sont conformes à la sémantique (sont dans notre base de connaissances), puis appelons le prédicat `concat` pour l'ajouter à une liste de propositions correspondantes, puis effectuons la récursion suivante sous forme d'unification. En termes d'implémentation du code, nous prenons la proposition en tête de la liste de propositions originale et la traitons, puis récurrons sur le corps, jusqu'à atteindre la liste vide.
+
+Le prédicat `tri_Abox` s'occupe d'initialiser les listes `Lie`, Lpt, Li, Lu et Ls, et d'appeler le prédicat `tri_Abox_rec` qui s'occupe du tri récursif.
+
 > Nous utilisons un exemple pour illustrer la conception du prédicat `tri_Abox`. Supposons que nous souhaitions ajouter une proposition `and(C1,C2)` aux listes de proposition :
 >
 > ```prolog
-> tri_Abox([(I, and(C1, C2)) | Abi], Lie, Lpt, Li, Lu, Ls) :-
->   concept(C1), concept(C2), concat(LiPartiel, [(I, and(C1, C2))], Li), tri_Abox(Abi, Lie, Lpt, LiPartiel, Lu, Ls), !.
+> tri_Abox(Abi, Lie, Lpt, Li, Lu, Ls) :- tri_Abox_rec(Abi, [], [], [], [], [], Lie, Lpt, Li, Lu, Ls),!.
+> tri_Abox_rec([], Lie, Lpt, Li, Lu, Ls, Lie, Lpt, Li, Lu, Ls).
+> tri_Abox_rec([(I, and(C1, C2)) | Abi], Lie1, Lpt1, Li1, Lu1, Ls1, Lie2, Lpt2, Li2, Lu2, Ls2) :- concept(C1), concept(C2), concat(Li1, [(I, and(C1, C2))], LiPartiel), tri_Abox_rec(Abi, Lie1, Lpt1, LiPartiel, Lu1, Ls1, Lie2, Lpt2, Li2, Lu2, Ls2),!.                                                   
 > ```
-> - "Lie, Lpt, Li, Lu, Ls" : les listes originales contenant différents types de propositions
-> - "LiPartiel" : la liste qui change. Au cours de la récursion, cette liste s'agrandit de plus en plus, donc à la fin, notre condition d'arrêt : `tri_Abox([], _, _, _, _, _)`.
+> - "Lie1, Lpt1, Li1, Lu1, Ls1" : les listes originales contenant différents types de propositions avant le traitement de l'instance `I:and(C1,C2)`
+> - "Lie2, Lpt2, Li2, Lu2, Ls2" : les listes contenant différents types de propositions après le traitement de l'instance `I:and(C1,C2)`
 
 ### `resolution`
 Le racine de l'arbre de démonstration.
@@ -416,7 +420,7 @@ La règle all.
 > ```prolog
 > deduction_all(Lie, [], Li, Lu, Ls, Abr) :- transformation_or(Lie, [], Li, Lu, Ls, Abr),!.
 > deduction_all(Lie, Lpt, Li, Lu, Ls, Abr) :- member((A, all(R, C)), Lpt), member((A, B, R), Abr), 
->                                            evolue((B, C), Lie, Lpt, Li, Lu, Ls, Lie1, Lpt1, Li1, Lu1, Ls1),
+>                                            evolue((B, C), Lie, Lpt, Li, Lu, Ls, Lie1, Lpt, Li1, Lu1, Ls1),
 >                                            enleve((A, all(R, C)), Lpt, Lpt2),
 >                                            affiche_evolution_Abox(Ls, Lie, Lpt, Li, Lu, Abr, Ls1, Lie1, Lpt2, Li1, Lu1, Abr),
 >                                            test_clash(Lie1, Lpt2, Li1, Lu1, Ls1, Abr).
